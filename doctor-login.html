@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Doctor Login | EMR System</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body { background: linear-gradient(135deg, #f8f9ff 0%, #e8f0fe 100%); }
+    .login-container { max-width: 500px; margin: 4rem auto; }
+    .login-form { background: white; padding: 3rem; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
+    .header { text-align: center; margin-bottom: 2rem; }
+    .header h1 { color: #1e40af; font-size: 2rem; margin: 0; }
+    .header p { color: #64748b; margin: 0.5rem 0 0 0; }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-form">
+      <div class="header">
+        <h1>🏥 Doctor Login</h1>
+        <p>Secure access to patient records and consultations</p>
+      </div>
+      
+      <form id="doctorLoginForm" class="form">
+        <div class="field">
+          <label for="doctorEmail">Email Address</label>
+          <input type="email" id="doctorEmail" name="email" required placeholder="doctor@clinic.com" />
+        </div>
+        
+        <div class="field">
+          <label for="doctorPassword">Password</label>
+          <input type="password" id="doctorPassword" name="password" required minlength="6" placeholder="••••••••" />
+        </div>
+        
+        <button type="button" class="primary" style="width: 100%; margin-bottom: 1rem;" onclick="window.location.href='doctor-register.html'">📝 Register Doctor</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE_URL = 'http://localhost:3000';
+    
+    document.getElementById('doctorLoginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('doctorEmail').value.trim();
+      const password = document.getElementById('doctorPassword').value;
+      
+      if (!email || !password) {
+        document.getElementById('doctorFormHint').textContent = 'Please enter email and password.';
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role: 'doctor', email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          localStorage.setItem('authUser', JSON.stringify(data.user));
+          window.location.href = 'doctor-dashboard.html';
+        } else {
+          document.getElementById('doctorFormHint').textContent = data.message || 'Login failed.';
+          document.getElementById('doctorFormHint').style.color = '#ef4444';
+        }
+      } catch (error) {
+        document.getElementById('doctorFormHint').textContent = 'Server error. Please try again.';
+        document.getElementById('doctorFormHint').style.color = '#ef4444';
+      }
+    });
+  </script>
+</body>
+</html>

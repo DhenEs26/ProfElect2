@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Registration | EMR System</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="container">
+    <header class="brand">
+      <h1>Staff Registration</h1>
+      <p>Admin-only staff account creation</p>
+    </header>
+    
+    <section class="card">
+      <form id="staffRegForm">
+        <div class="field">
+          <label for="staffEmail">Email</label>
+          <input type="email" id="staffEmail" required>
+        </div>
+        <div class="field">
+          <label for="staffPassword">Password</label>
+          <input type="password" id="staffPassword" required minlength="6">
+        </div>
+        <div class="field">
+          <label for="staffName">Full Name</label>
+          <input type="text" id="staffName" required>
+        </div>
+        <div class="field">
+          <label for="staffPosition">Position</label>
+          <input type="text" id="staffPosition" required>
+        </div>
+        <div class="field" style="display: flex; gap: 0.5rem; align-items: flex-start;">
+          <input type="checkbox" id="staffConsent" required>
+          <label for="staffConsent">Data Privacy Act 2012 Consent</label>
+        </div>
+        <button type="submit" class="primary">Create Staff Account</button>
+        <p class="hint" id="staffHint"></p>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    document.getElementById('staffRegForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      if (!document.getElementById('staffConsent').checked) {
+        document.getElementById('staffHint').textContent = 'Must consent to privacy policy';
+        return;
+      }
+
+      const payload = {
+        role: 'staff',
+        email: document.getElementById('staffEmail').value.trim(),
+        password: document.getElementById('staffPassword').value,
+        privacyConsent: true,
+        displayName: document.getElementById('staffName').value.trim(),
+        position: document.getElementById('staffPosition').value.trim()
+      };
+
+      try {
+        const response = await fetch('/api/register', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          alert('Staff account created! Login at main page.');
+          window.location.href = 'index.html';
+        } else {
+          document.getElementById('staffHint').textContent = data.message;
+        }
+      } catch (err) {
+        document.getElementById('staffHint').textContent = 'Server error';
+      }
+    });
+  </script>
+</body>
+</html>

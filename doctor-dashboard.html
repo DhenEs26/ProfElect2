@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Doctor Dashboard | EMR System</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f5f7fa;
+      margin: 0;
+      padding: 0;
+      display: flex;
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 170px;
+      height: 100vh;
+      background: linear-gradient(135deg, #1a365d 0%, #2d5a8c 100%);
+      color: white;
+      padding: 1.5rem 0;
+      box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+      overflow-y: auto;
+      z-index: 100;
+    }
+
+    .sidebar-header {
+      padding: 0 1.5rem 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      margin-bottom: 1.5rem;
+    }
+
+    .sidebar-header h2 {
+      margin: 0;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding: 0 1rem;
+    }
+
+    .sidebar-nav-item {
+      padding: 0.75rem 1rem;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      color: rgba(255, 255, 255, 0.8);
+      cursor: pointer;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .sidebar-nav-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+
+    .sidebar-nav-item.active {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border-left: 4px solid #ffd700;
+    }
+
+    /* Main Wrapper */
+    .main-wrapper {
+      margin-left: 170px;
+      width: calc(100% - 170px);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .dashboard-header {
+      background: linear-gradient(135deg, #1a365d 0%, #2d5a8c 100%);
+      color: white;
+      padding: 1.5rem 2rem;
+      border-radius: 0 0 1rem 1rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .dashboard-header .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .dashboard-header .header-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+    }
+
+    .dashboard-header h1 {
+      margin: 0;
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    .dashboard-header p {
+      margin: 0.25rem 0 0 0;
+      opacity: 0.9;
+      font-size: 0.9rem;
+    }
+
+    .dashboard-header .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .search-box {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      width: 250px;
+    }
+
+    #logoutBtn {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s ease;
+    }
+
+    #logoutBtn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .search-box::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* Tab Navigation */
+    .tab-nav {
+      display: flex;
+      gap: 1rem;
+      padding: 1.5rem 2rem;
+      background: white;
+      border-bottom: 1px solid #e0e0e0;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      padding: 0.75rem 1.5rem;
+      background: white;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      font-weight: 600;
+      color: #666;
+      transition: all 0.3s ease;
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: #0066cc;
+      border-bottom-color: #0066cc;
+    }
+
+    .tab-btn.active {
+      color: #0066cc;
+      border-bottom-color: #0066cc;
+    }
+
+    /* Section visibility */
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    /* Main Content Layout */
+    .doc-layout {
+      display: flex;
+      flex: 1;
+      gap: 2rem;
+      padding: 2rem;
+    }
+
+    .doc-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .doc-sidebar {
+      width: 300px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* Card Styles */
+    .card {
+      background: white;
+      padding: 1.75rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .card h2,
+    .card h3 {
+      margin: 0 0 1.5rem 0;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #1a202c;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-list {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .data-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      border-left: 5px solid #0066cc;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      color: #1a202c;
+    }
+
+    .data-card:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .data-card.selected {
+      background: #e3f2fd;
+      border-left-color: #0066cc;
+    }
+
+    .data-row {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 1rem;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #f0f0f0;
+      align-items: center;
+    }
+
+    .data-row:last-child {
+      border-bottom: none;
+    }
+
+    .data-label {
+      font-weight: 700;
+      color: #666;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .data-value {
+      color: #1a202c;
+      font-weight: 500;
+    }
+
+    /* Status Badge */
+    .status-badge {
+      display: inline-block;
+      padding: 0.35rem 0.9rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .status-pending {
+      background: #fff3cd;
+      color: #b8860b;
+    }
+
+    .status-scheduled {
+      background: #d4edff;
+      color: #0066cc;
+    }
+
+    .status-completed {
+      background: #d4edda;
+      color: #1e7e34;
+    }
+
+    .status-denied {
+      background: #f8d7da;
+      color: #c92a2a;
+    }
+
+    .status-approved {
+      background: #d4edda;
+      color: #1e7e34;
+    }
+
+    .status-under-review {
+      background: #e2e3e5;
+      color: #383d41;
+    }
+
+    /* Schedule Card */
+    .schedule-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      background: #f8f9fa;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .schedule-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: #0066cc;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .schedule-time {
+      flex: 1;
+    }
+
+    .schedule-name {
+      font-weight: 700;
+      color: #1a202c;
+      margin: 0;
+    }
+
+    .schedule-hour {
+      font-size: 0.9rem;
+      color: #0066cc;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    /* Alert Item */
+    .alert-item {
+      display: flex;
+      gap: 0.75rem;
+      padding: 1rem;
+      background: #fff8f0;
+      border-left: 4px solid #ff6b35;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+    }
+
+    .alert-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .alert-content p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #1a202c;
+    }
+
+    .alert-time {
+      font-size: 0.8rem;
+      color: #999;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .doc-layout {
+        gap: 1.5rem;
+        padding: 1.5rem;
+      }
+
+      .doc-sidebar {
+        width: 280px;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .doc-layout {
+        flex-direction: column;
+      }
+
+      .doc-sidebar {
+        width: 100%;
+      }
+
+      .search-box {
+        width: 200px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 150px;
+      }
+
+      .main-wrapper {
+        margin-left: 150px;
+        width: calc(100% - 150px);
+      }
+
+      .dashboard-header {
+        padding: 1rem;
+      }
+
+      .tab-nav {
+        padding: 1rem;
+        gap: 0.5rem;
+      }
+
+      .tab-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+      }
+
+      .doc-layout {
+        padding: 1rem;
+      }
+
+      .search-box {
+        width: 150px;
+        padding: 0.4rem 0.8rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .sidebar {
+        width: 130px;
+      }
+
+      .main-wrapper {
+        margin-left: 130px;
+        width: calc(100% - 130px);
+      }
+
+      .sidebar-nav-item {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.75rem;
+      }
+
+      .doc-layout {
+        padding: 0.75rem;
+        gap: 1rem;
+      }
+
+      .card {
+        padding: 1rem;
+      }
+
+      .search-box {
+        display: none;
+      }
+    }
+
+    /* Scrollbar */
+    .sidebar::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 3px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar Navigation -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>📋 Doctor</h2>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="sidebar-nav-item active" data-target="consultations" data-filter="pending">Dashboard</button>
+      <button class="sidebar-nav-item" data-target="availability">Availability</button>
+      <button class="sidebar-nav-item" data-target="patient-records">Patient Records</button>
+      <button class="sidebar-nav-item" data-target="notifications">Notifications</button>
+      <button class="sidebar-nav-item" data-target="profile">Profile</button>
+      <button class="sidebar-nav-item" data-target="settings">Settings</button>
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-wrapper">
+    <!-- Header -->
+    <div class="dashboard-header">
+      <div class="header-left">
+        <div class="header-avatar">👩‍⚕️</div>
+        <div>
+          <h1>🔐 Doctor Dashboard</h1>
+          <p>Consultation and EMR Management</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <input type="text" class="search-box" id="searchPatient" placeholder="Search patient..." />
+        <button id="logoutBtn">Logout</button>
+      </div>
+    </div>
+
+    <section id="consultations" class="section active">
+      <!-- Tab Navigation -->
+      <div class="tab-nav">
+        <button class="tab-btn active" data-filter="pending">
+          <span style="color: #ff6b35;">●</span> Pending Requests
+        </button>
+        <button class="tab-btn" data-filter="scheduled">
+          <span style="color: #0066cc;">■</span> Today's Appointments
+        </button>
+        <button class="tab-btn" data-filter="completed">
+          <span style="color: #2ecc71;">✓</span> Completed
+        </button>
+        <button class="tab-btn" data-filter="available">
+          <span style="color: #2ecc71;">📅</span> Available Slots
+        </button>
+      </div>
+
+      <!-- Main Content Layout -->
+      <div class="doc-layout">
+        <!-- Main Content Area -->
+        <div class="doc-main">
+          <div class="card">
+            <h2>Patient Consultation Requests</h2>
+            <p id="consultationsDebug" style="color: #666; font-size: 0.85rem; margin: 0 0 0.75rem 0;">Loading consultations...</p>
+            <div id="consultationsList" class="card-list"></div>
+            <div id="availabilityList" class="card-list" style="display: none;"></div>
+          </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="doc-sidebar">
+          <!-- Sidebar content removed (Availability + Access Alerts) -->
+        </div>
+      </div>
+
+      <!-- Consultation Detail View -->
+      <div id="consultationDetail" class="card" style="display: none; margin-top: 2rem;">
+        <h2>Consultation Details</h2>
+        <div class="two-col">
+          <div id="consultationInfo"></div>
+          <div id="patientEMR"></div>
+        </div>
+        <div style="margin-top: 1.5rem;">
+          <h3>Manage Consultation</h3>
+          <form id="updateConsultationForm" class="form">
+            <div class="form-row">
+              <div class="field">
+                <label for="updateStatus">Status</label>
+                <select id="updateStatus" name="status">
+                  <option value="pending">Pending</option>
+                  <option value="under-review">Under Review</option>
+                  <option value="scheduled">Scheduled</option>
+                  <option value="completed">Completed</option>
+                  <option value="denied">Denied</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="consultationDate">Consultation Date</label>
+                <input type="date" id="consultationDate" name="consultationDate" />
+              </div>
+              <div class="field">
+                <label for="consultationTimeStart">Consultation Time - Start</label>
+                <input type="time" id="consultationTimeStart" name="consultationTimeStart" />
+              </div>
+              <div class="field">
+                <label for="consultationTimeEnd">Consultation Time - End</label>
+                <input type="time" id="consultationTimeEnd" name="consultationTimeEnd" />
+              </div>
+            </div>
+            <div class="field">
+              <label for="doctorNotes">Doctor Notes & Recommendations</label>
+              <textarea id="doctorNotes" name="notes" rows="4" placeholder="Add notes, remarks, recommendations, and follow-up instructions..."></textarea>
+            </div>
+            <button type="submit" class="primary">Update Consultation</button>
+            <p id="updateHint"></p>
+          </form>
+        </div>
+        <button id="backButton" class="primary" style="margin-top: 1rem; background: rgba(100,100,100,0.2);">Back to List</button>
+      </div>
+    </section>
+
+    <!-- Set Availability Section -->
+    <section id="availability" class="section">
+      <div class="card">
+        <h2>Set Your Availability</h2>
+        <form id="availabilityForm" class="form">
+          <div class="form-row">
+            <div class="field">
+              <label for="availableDate">Available Date</label>
+              <input type="date" id="availableDate" name="availableDate" required />
+            </div>
+          </div>
+          <div class="field">
+            <label>Available Time Slots</label>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.5rem; margin-top: 0.5rem;">
+              <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="checkbox" class="time-check" value="08:00" /> 8:00 AM
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="checkbox" class="time-check" value="09:00" /> 9:00 AM
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="checkbox" class="time-check" value="10:00" /> 10:00 AM
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="checkbox" class="time-check" value="11:00" /> 11:00 AM
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="checkbox" class="time-check" value="14:00" /> 2:00 PM
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="checkbox" class="time-check" value="15:00" /> 3:00 PM
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="checkbox" class="time-check" value="16:00" /> 4:00 PM
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="checkbox" class="time-check" value="17:00" /> 5:00 PM
+              </label>
+            </div>
+          </div>
+          <button type="submit" class="primary" style="margin-top: 1rem;">Set Availability</button>
+          <p id="availabilityHint"></p>
+        </form>
+
+        <h3 style="margin-top: 2rem;">Your Current Availability</h3>
+        <div id="currentAvailability" class="card-list"></div>
+      </div>
+    </section>
+
+    <!-- Notifications Section -->
+    <section id="notifications" class="section">
+      <div class="card">
+        <h2>Notifications</h2>
+        <div id="notificationsList" class="card-list"></div>
+      </div>
+    </section>
+
+    <!-- Patient Records Section -->
+    <section id="patient-records" class="section">
+      <div class="card">
+        <h2>Patient Records</h2>
+        <p style="color:#666;">Select a patient from the consultation list to view their record.</p>
+        <p id="patientRecordsDebug" style="color:#666; font-size:0.9rem; margin:0 0 0.75rem 0;">Loading patients...</p>
+        <div id="patientRecordsList" class="card-list"></div>
+      </div>
+    </section>
+
+    <!-- Profile Section -->
+    <section id="profile" class="section">
+      <div class="card">
+        <h2>Doctor Profile</h2>
+        <form id="doctorProfileForm" class="form">
+          <div class="field">
+            <label for="doctorName">Full Name</label>
+            <input type="text" id="doctorName" name="display_name" required />
+          </div>
+          <div class="field">
+            <label for="doctorEmail">Email (Read-only)</label>
+            <input type="email" id="doctorEmail" readonly />
+          </div>
+          <div class="field">
+            <label for="totalConsultations">Total Consultations</label>
+            <input type="number" id="totalConsultations" readonly />
+          </div>
+          <button type="submit" class="primary">Update Profile</button>
+          <p id="profileHint"></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- Settings Section -->
+    <section id="settings" class="section">
+      <div class="card">
+        <h2>Settings</h2>
+        <p style="color:#666;">Settings will appear here.</p>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>EMR Doctor Management System • Patient Care & Records</p>
+    </footer>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <script>
+    const API_BASE_URL = 'http://localhost:3000';
+    const authUser = JSON.parse(localStorage.getItem('authUser') || 'null');
+
+    if (!authUser || !authUser.id || authUser.role !== 'doctor') {
+      alert('Access denied. Please log in as a doctor.');
+      window.location.href = 'index.html';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const sidebarBtns = document.querySelectorAll('.sidebar-nav-item');
+      const sections = document.querySelectorAll('.section');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const searchInput = document.getElementById('searchPatient');
+
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    let currentFilter = document.querySelector('.tab-btn.active')?.dataset.filter || 'pending';
+    let searchQuery = '';
+
+    let selectedConsultationId = null;
+    let consultationsData = [];
+    let availabilityData = [];
+    function setFilter(filter) {
+      currentFilter = filter;
+      tabBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.filter === filter));
+      renderConsultationsList();
+    }
+
+    function switchSection(target, filter) {
+      sidebarBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.target === target));
+      sections.forEach(sec => sec.classList.toggle('active', sec.id === target));
+
+      if (target === 'consultations' && filter) {
+        setFilter(filter);
+      }
+    }
+
+    sidebarBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.target;
+        const filter = btn.dataset.filter;
+        switchSection(target, filter);
+      });
+    });
+
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        setFilter(btn.dataset.filter);
+      });
+    });
+
+    searchInput.addEventListener('input', () => {
+      searchQuery = searchInput.value.trim().toLowerCase();
+
+      // When the search box is empty, show all patients (no filtering)
+      if (!searchQuery) {
+        switchSection('patient-records');
+        renderPatientList();
+        return;
+      }
+
+      // Otherwise, filter patients based on search
+      const filtered = allPatients.filter(p => {
+        const fullName = `${p.first_name} ${p.last_name}`.toLowerCase();
+        return fullName.includes(searchQuery);
+      });
+
+      const container = document.getElementById('patientRecordsList');
+      if (filtered.length === 0) {
+        container.innerHTML = '<p style="color: var(--muted);">No patients found matching "' + searchQuery + '".</p>';
+      } else {
+        container.innerHTML = filtered.map(p => `
+          <div class="data-card" onclick="selectPatientForRecords(${p.user_id})" style="cursor: pointer;">
+            <div class="data-row">
+              <div class="data-label">Name</div>
+              <div class="data-value">${p.first_name} ${p.middle_name || ''} ${p.last_name}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Email</div>
+              <div class="data-value">${p.email}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Mobile</div>
+              <div class="data-value">${p.mobile}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Consultations</div>
+              <div class="data-value">${p.total_consultations || 0}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      switchSection('patient-records');
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('authUser');
+      window.location.href = 'index.html';
+    });
+
+    // ============ CONSULTATIONS ============
+
+    async function loadConsultations() {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/doctor/consultations?userId=${authUser.id}`);
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+
+        consultationsData = data.consultations || [];
+        document.getElementById('consultationsDebug').textContent = `Loaded ${consultationsData.length} consultations.`;
+        renderConsultationsList();
+      } catch (err) {
+        document.getElementById('consultationsList').innerHTML = `<p style="color: var(--danger);">Error loading consultations: ${err.message}</p>`;
+      }
+    }
+
+    function renderAvailabilityList() {
+      const container = document.getElementById('availabilityList');
+      if (!availabilityData || availabilityData.length === 0) {
+        container.innerHTML = '<p style="color: var(--muted);">No availability slots set.</p>';
+        return;
+      }
+
+      container.innerHTML = availabilityData.map((a) => {
+        const slots = (a.available_time_slots && typeof a.available_time_slots === 'string')
+          ? JSON.parse(a.available_time_slots)
+          : a.available_time_slots || [];
+
+        return `
+          <div class="data-card">
+            <div class="data-row">
+              <div class="data-label">Date</div>
+              <div class="data-value">${a.available_date}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Time Slots</div>
+              <div class="data-value">${slots.length ? slots.join(', ') : 'None'}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+
+    function renderConsultationsList() {
+      const listEl = document.getElementById('consultationsList');
+      const availabilityEl = document.getElementById('availabilityList');
+      const detailEl = document.getElementById('consultationDetail');
+
+      // Ensure list view is shown (detail view hides it)
+      detailEl.style.display = 'none';
+
+      if (currentFilter === 'available') {
+        listEl.style.display = 'none';
+        availabilityEl.style.display = '';
+        renderAvailabilityList();
+        return;
+      }
+
+      listEl.style.display = '';
+      availabilityEl.style.display = 'none';
+
+      const now = new Date();
+      const today = now.toISOString().slice(0, 10);
+
+      const searchTerm = searchQuery;
+      const filteredBySearch = searchTerm
+        ? consultationsData.filter(c => {
+            const fullName = `${c.first_name} ${c.last_name}`.toLowerCase();
+            return fullName.includes(searchTerm);
+          })
+        : consultationsData;
+
+      document.getElementById('consultationsDebug').textContent = `Showing ${filteredBySearch.length} matching consultations (filter: ${currentFilter}${searchTerm ? `, search: "${searchTerm}"` : ''}).`;
+
+      const filtered = filteredBySearch.filter((c) => {
+        // If searching, show all matching results regardless of status
+        if (searchTerm) {
+          return true;
+        }
+        // Otherwise filter by status
+        if (currentFilter === 'scheduled') {
+          return c.consultation_date === today || c.status === 'scheduled';
+        }
+        return c.status === currentFilter;
+      });
+
+      const html = filtered.length === 0 ?
+        '<p style="color: var(--muted);">No consultations available.</p>' :
+        filtered.map(c => `
+          <div class="data-card" onclick="selectConsultation(${c.id})">
+            <div class="data-row">
+              <div class="data-label">Patient</div>
+              <div class="data-value">${c.first_name} ${c.last_name}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Status</div>
+              <div><span class="status-badge status-${c.status}">${c.status.toUpperCase()}</span></div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Concerns</div>
+              <div class="data-value" style="white-space: pre-wrap; word-break: break-word;">${c.concerns.substring(0, 100)}${c.concerns.length > 100 ? '...' : ''}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Submitted</div>
+              <div class="data-value" style="font-size: 0.9rem;">${new Date(c.created_at).toLocaleString()}</div>
+            </div>
+          </div>
+        `).join('');
+
+      listEl.innerHTML = html;
+    }
+
+
+    async function selectConsultation(consultationId) {
+      selectedConsultationId = consultationId;
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/doctor/consultation/${consultationId}?userId=${authUser.id}`);
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+
+        const c = data.consultation;
+        const assessment = c.assessment || {};
+
+        function formatAssessment(assessmentData) {
+          if (!assessmentData || Object.keys(assessmentData).length === 0) {
+            return '<p style="color: var(--muted);">No assessment data available.</p>';
+          }
+
+          const cpAbeIndicator = `
+            <div style="
+              background: linear-gradient(135deg, #e8f4f8 0%, #d4e9f2 100%);
+              border: 2px solid #0088cc;
+              border-radius: 8px;
+              padding: 12px 16px;
+              margin-bottom: 16px;
+              display: flex;
+              align-items: center;
+              gap: 12px;
+            ">
+              <span style="font-size: 20px;">🔐</span>
+              <div>
+                <strong style="color: #004a99;">CP-ABE Encrypted Assessment</strong>
+                <br/>
+                <small style="color: #0066cc;">You have doctor access to decrypt this patient data</small>
+              </div>
+            </div>
+          `;
+
+          const labels = {
+            symptoms: 'Symptoms',
+            urgent: 'Urgent',
+            healthStatus: 'Health Status',
+            hospitalized: 'Hospitalized',
+            surgery: 'Surgery',
+            highBloodPressure: 'High Blood Pressure',
+            diabetes: 'Diabetes',
+            asthma: 'Asthma / Lung Condition',
+            heartDisease: 'Heart Disease',
+            kidneyDisease: 'Kidney Disease',
+            liverDisease: 'Liver Disease',
+            tuberculosis: 'Tuberculosis',
+            cancer: 'Cancer',
+            mentalHealth: 'Mental Health Condition',
+            otherConditions: 'Other Conditions',
+            medications: 'Currently Taking Medications',
+            maintenanceMedications: 'Maintenance Medications',
+            medicineAllergy: 'Medicine Allergy',
+            foodAllergy: 'Food Allergy',
+            familyHighBloodPressure: 'Family History: High Blood Pressure',
+            familyDiabetes: 'Family History: Diabetes',
+            familyHeartDisease: 'Family History: Heart Disease',
+            familyCancer: 'Family History: Cancer',
+            familyStroke: 'Family History: Stroke',
+            smoke: 'Smoke',
+            alcohol: 'Drink Alcohol',
+            vape: 'Use Vape / E-cigarettes',
+            drugs: 'Use Recreational Drugs',
+            exercise: 'Exercise Regularly',
+            feverCough: 'Recent Fever/Cough/Colds',
+            difficultyBreathing: 'Difficulty Breathing',
+            diarrheaVomiting: 'Diarrhea / Vomiting',
+            exposedIllness: 'Exposed to Contagious Illness',
+            pregnant: 'Pregnant',
+            breastfeeding: 'Breastfeeding',
+          };
+
+          const rows = Object.keys(assessmentData).map((key) => {
+            const label = labels[key] || key;
+            const value = assessmentData[key];
+            return `
+              <div class="data-row">
+                <div class="data-label">${label}</div>
+                <div class="data-value">${value === true ? 'Yes' : value === false ? 'No' : value || '—'}</div>
+              </div>
+            `;
+          });
+
+          return `${cpAbeIndicator}<div style="max-height: 400px; overflow-y: auto;">${rows.join('')}</div>`;
+        }
+
+        document.getElementById('consultationInfo').innerHTML = `
+          <div>
+            <h3 style="margin-top: 0;">Patient Information</h3>
+            <div class="data-row">
+              <div class="data-label">Name</div>
+              <div class="data-value">${c.first_name} ${c.middle_name || ''} ${c.last_name}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Email</div>
+              <div class="data-value">${c.email}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Mobile</div>
+              <div class="data-value">${c.mobile}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">DOB</div>
+              <div class="data-value">${c.date_of_birth}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Age</div>
+              <div class="data-value">${c.age}</div>
+            </div>
+            <h3 style="margin-top: 1.5rem;">Consultation Details</h3>
+            <div class="data-row">
+              <div class="data-label">Concerns</div>
+              <div class="data-value" style="white-space: pre-wrap; word-break: break-word;">${c.concerns}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Status</div>
+              <div><span class="status-badge status-${c.status}">${c.status.toUpperCase()}</span></div>
+            </div>
+            ${c.consultation_date ? `<div class="data-row">
+              <div class="data-label">Scheduled</div>
+              <div class="data-value">${c.consultation_date} at ${c.consultation_time}${c.consultation_time_end ? ` - ${c.consultation_time_end}` : ''}</div>
+            </div>` : ''}
+          </div>
+        `;
+
+        document.getElementById('patientEMR').innerHTML = `
+          <div>
+            <h3 style="margin-top: 0;">Health Assessment Summary</h3>
+            ${formatAssessment(assessment)}
+          </div>
+        `;
+
+        document.getElementById('updateStatus').value = c.status || 'pending';
+        document.getElementById('consultationDate').value = c.consultation_date || '';
+        document.getElementById('consultationTimeStart').value = c.consultation_time || '';
+        document.getElementById('consultationTimeEnd').value = c.consultation_time_end || '';
+        document.getElementById('doctorNotes').value = c.notes || '';
+
+        document.getElementById('consultationsList').style.display = 'none';
+        document.getElementById('consultationDetail').style.display = 'block';
+      } catch (err) {
+        alert('Error loading consultation details: ' + err.message);
+      }
+    }
+
+    window.selectConsultation = selectConsultation;
+
+    document.getElementById('backButton').addEventListener('click', () => {
+      selectedConsultationId = null;
+      document.getElementById('consultationsList').style.display = 'block';
+      document.getElementById('consultationDetail').style.display = 'none';
+      loadConsultations();
+    });
+
+    document.getElementById('updateConsultationForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!selectedConsultationId) return;
+
+      const updates = {
+        status: document.getElementById('updateStatus').value,
+        consultationDate: document.getElementById('consultationDate').value,
+        consultationTime: document.getElementById('consultationTimeStart').value,
+        consultationTimeEnd: document.getElementById('consultationTimeEnd').value,
+        notes: document.getElementById('doctorNotes').value,
+      };
+
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/doctor/consultation/${selectedConsultationId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: authUser.id, ...updates }),
+        });
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+        document.getElementById('updateHint').textContent = '✓ Consultation updated successfully.';
+        document.getElementById('updateHint').style.color = 'var(--success)';
+        loadConsultations();
+      } catch (err) {
+        document.getElementById('updateHint').textContent = `❌ ${err.message}`;
+        document.getElementById('updateHint').style.color = 'var(--danger)';
+      }
+    });
+
+    // ============ AVAILABILITY ============
+
+    document.getElementById('availabilityForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const availableDate = document.getElementById('availableDate').value;
+      const timeSlots = Array.from(document.querySelectorAll('.time-check:checked')).map(cb => cb.value);
+
+      if (!availableDate || timeSlots.length === 0) {
+        alert('Please select a date and at least one time slot.');
+        return;
+      }
+
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/doctor/availability`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: authUser.id, availableDate, timeSlots }),
+        });
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+        document.getElementById('availabilityHint').textContent = '✓ Availability set successfully.';
+        document.getElementById('availabilityHint').style.color = 'var(--success)';
+        document.getElementById('availabilityForm').reset();
+        loadMyAvailability();
+      } catch (err) {
+        document.getElementById('availabilityHint').textContent = `❌ ${err.message}`;
+        document.getElementById('availabilityHint').style.color = 'var(--danger)';
+      }
+    });
+
+    async function loadMyAvailability() {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/doctor/my-availability?userId=${authUser.id}`);
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+
+        availabilityData = data.availability || [];
+        renderAvailabilityList();
+
+        const list = document.getElementById('currentAvailability');
+        if (!availabilityData || availabilityData.length === 0) {
+          list.innerHTML = '<p style="color: var(--muted);">No availability set yet.</p>';
+          return;
+        }
+
+        list.innerHTML = availabilityData.map(a => `
+          <div class="data-card">
+            <div class="data-row">
+              <div class="data-label">Date</div>
+              <div class="data-value">${a.available_date}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Time Slots</div>
+              <div class="time-slots">
+                ${JSON.parse(a.available_time_slots).map(t => `<div class="time-slot">${t}</div>`).join('')}
+              </div>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        document.getElementById('currentAvailability').innerHTML = `<p style="color: var(--danger);">Error: ${err.message}</p>`;
+      }
+    }
+
+    // ============ NOTIFICATIONS ============
+
+    async function loadNotifications() {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/notifications?userId=${authUser.id}`);
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+
+        const list = document.getElementById('notificationsList');
+        if (!data.notifications || data.notifications.length === 0) {
+          list.innerHTML = '<p style="color: var(--muted);">No notifications.</p>';
+          return;
+        }
+
+        list.innerHTML = data.notifications.map(n => `
+          <div class="data-card" style="opacity: ${n.read ? '0.6' : '1'};">
+            <p style="margin: 0 0 0.5rem 0;">${n.message}</p>
+            <p style="margin: 0; font-size: 0.85rem; color: var(--muted);">${new Date(n.created_at).toLocaleString()}</p>
+          </div>
+        `).join('');
+      } catch (err) {
+        document.getElementById('notificationsList').innerHTML = `<p style="color: var(--danger);">Error: ${err.message}</p>`;
+      }
+    }
+
+    // ============ PATIENT RECORDS ============
+
+    let allPatients = [];
+    let selectedPatientId = null;
+
+    async function loadAllPatients() {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/doctor/patients?doctorId=${authUser.id}`);
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+
+        allPatients = data.patients || [];
+        document.getElementById('patientRecordsDebug').textContent = `Loaded ${allPatients.length} patients.`;
+        renderPatientList();
+      } catch (err) {
+        document.getElementById('patientRecordsList').innerHTML = `<p style="color: var(--danger);">Error loading patients: ${err.message}</p>`;
+      }
+    }
+
+    function renderPatientList() {
+      const container = document.getElementById('patientRecordsList');
+      if (!allPatients || allPatients.length === 0) {
+        container.innerHTML = '<p style="color: var(--muted);">No patients found.</p>';
+        return;
+      }
+
+      const html = allPatients.map(p => `
+        <div class="data-card" onclick="selectPatientForRecords(${p.user_id})" style="cursor: pointer;">
+          <div class="data-row">
+            <div class="data-label">Name</div>
+            <div class="data-value">${p.first_name} ${p.middle_name || ''} ${p.last_name}</div>
+          </div>
+          <div class="data-row">
+            <div class="data-label">Email</div>
+            <div class="data-value">${p.email}</div>
+          </div>
+          <div class="data-row">
+            <div class="data-label">Mobile</div>
+            <div class="data-value">${p.mobile}</div>
+          </div>
+          <div class="data-row">
+            <div class="data-label">Consultations</div>
+            <div class="data-value">${p.total_consultations || 0}</div>
+          </div>
+        </div>
+      `).join('');
+
+      container.innerHTML = html;
+    }
+
+    async function selectPatientForRecords(patientUserId) {
+      selectedPatientId = patientUserId;
+      try {
+        // Fetch complete patient EMR with assessment
+        const emrResp = await fetch(`${API_BASE_URL}/api/doctor/patient/${patientUserId}?doctorId=${authUser.id}`);
+        const emrData = await emrResp.json();
+        if (!emrData.success) throw new Error(emrData.message);
+
+        // Fetch all consultations for this patient
+        const consResp = await fetch(`${API_BASE_URL}/api/doctor/patient/${patientUserId}/consultations?doctorId=${authUser.id}`);
+        const consData = await consResp.json();
+        if (!consData.success) throw new Error(consData.message);
+
+        const patient = emrData.emr;
+        const consultations = consData.consultations || [];
+        const assessment = patient.assessment_json ? JSON.parse(patient.assessment_json) : {};
+
+        // Format assessment data
+        function formatAssessment(assessmentData) {
+          if (!assessmentData || Object.keys(assessmentData).length === 0) {
+            return '<p style="color: var(--muted);">No assessment data available.</p>';
+          }
+
+          const cpAbeIndicator = `
+            <div style="
+              background: linear-gradient(135deg, #e8f4f8 0%, #d4e9f2 100%);
+              border: 2px solid #0088cc;
+              border-radius: 8px;
+              padding: 12px 16px;
+              margin-bottom: 16px;
+              display: flex;
+              align-items: center;
+              gap: 12px;
+            ">
+              <span style="font-size: 20px;">🔐</span>
+              <div>
+                <strong style="color: #004a99;">CP-ABE Encrypted Assessment</strong>
+                <br/>
+                <small style="color: #0066cc;">You have doctor access to decrypt this patient data</small>
+              </div>
+            </div>
+          `;
+
+          const labels = {
+            symptoms: 'Symptoms',
+            urgent: 'Urgent',
+            healthStatus: 'Health Status',
+            hospitalized: 'Hospitalized',
+            surgery: 'Surgery',
+            highBloodPressure: 'High Blood Pressure',
+            diabetes: 'Diabetes',
+            asthma: 'Asthma / Lung Condition',
+            heartDisease: 'Heart Disease',
+            kidneyDisease: 'Kidney Disease',
+            liverDisease: 'Liver Disease',
+            tuberculosis: 'Tuberculosis',
+            cancer: 'Cancer',
+            mentalHealth: 'Mental Health Condition',
+            otherConditions: 'Other Conditions',
+            medications: 'Currently Taking Medications',
+            maintenanceMedications: 'Maintenance Medications',
+            medicineAllergy: 'Medicine Allergy',
+            foodAllergy: 'Food Allergy',
+            familyHighBloodPressure: 'Family History: High Blood Pressure',
+            familyDiabetes: 'Family History: Diabetes',
+            familyHeartDisease: 'Family History: Heart Disease',
+            familyCancer: 'Family History: Cancer',
+            familyStroke: 'Family History: Stroke',
+            smoke: 'Smoke',
+            alcohol: 'Drink Alcohol',
+            vape: 'Use Vape / E-cigarettes',
+            drugs: 'Use Recreational Drugs',
+            exercise: 'Exercise Regularly',
+            feverCough: 'Recent Fever/Cough/Colds',
+            difficultyBreathing: 'Difficulty Breathing',
+            diarrheaVomiting: 'Diarrhea / Vomiting',
+            exposedIllness: 'Exposed to Contagious Illness',
+            pregnant: 'Pregnant',
+            breastfeeding: 'Breastfeeding',
+          };
+
+          const rows = Object.keys(assessmentData).map((key) => {
+            const label = labels[key] || key;
+            const value = assessmentData[key];
+            return `
+              <div class="data-row">
+                <div class="data-label">${label}</div>
+                <div class="data-value">${value === true ? 'Yes' : value === false ? 'No' : value || '—'}</div>
+              </div>
+            `;
+          });
+
+          return `${cpAbeIndicator}<div style="max-height: 400px; overflow-y: auto;">${rows.join('')}</div>`;
+        }
+
+        // Display patient details and consultations
+        document.getElementById('patientRecordsList').innerHTML = `
+          <div>
+            <h3>Patient Information</h3>
+            <div class="data-row">
+              <div class="data-label">Name</div>
+              <div class="data-value">${patient.first_name} ${patient.middle_name || ''} ${patient.last_name}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Email</div>
+              <div class="data-value">${patient.email}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Mobile</div>
+              <div class="data-value">${patient.mobile}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">DOB</div>
+              <div class="data-value">${patient.date_of_birth}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Age</div>
+              <div class="data-value">${patient.age}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Sex</div>
+              <div class="data-value">${patient.sex}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Address</div>
+              <div class="data-value">${patient.address}</div>
+            </div>
+
+            <h3 style="margin-top: 2rem;">Health Assessment Summary</h3>
+            ${formatAssessment(assessment)}
+
+            <h3 style="margin-top: 2rem;">Consultation History</h3>
+            ${consultations.length === 0 ? 
+              '<p style="color: var(--muted);">No consultations yet.</p>' :
+              consultations.map(c => `
+                <div class="data-card">
+                  <div class="data-row">
+                    <div class="data-label">Date & Time</div>
+                    <div class="data-value">${c.consultation_date || 'Not scheduled'} ${c.consultation_time ? 'at ' + c.consultation_time : ''}</div>
+                  </div>
+                  <div class="data-row">
+                    <div class="data-label">Status</div>
+                    <div><span class="status-badge status-${c.status}">${c.status.toUpperCase()}</span></div>
+                  </div>
+                  <div class="data-row">
+                    <div class="data-label">Concerns/Reason</div>
+                    <div class="data-value" style="white-space: pre-wrap; word-break: break-word;">${c.concerns}</div>
+                  </div>
+                  ${c.notes ? `<div class="data-row">
+                    <div class="data-label">Doctor Notes</div>
+                    <div class="data-value" style="white-space: pre-wrap; word-break: break-word;">${c.notes}</div>
+                  </div>` : ''}
+                </div>
+              `).join('')
+            }
+
+            <button id="backToPatientList" class="primary" style="margin-top: 2rem; background: rgba(100,100,100,0.2);">Back to Patient List</button>
+          </div>
+        `;
+
+        document.getElementById('backToPatientList').addEventListener('click', () => {
+          selectedPatientId = null;
+          renderPatientList();
+        });
+      } catch (err) {
+        alert('Error loading patient details: ' + err.message);
+        renderPatientList();
+      }
+    }
+
+    window.selectPatientForRecords = selectPatientForRecords;
+
+    // ============ PROFILE ============
+
+    async function loadProfile() {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/doctor/profile?userId=${authUser.id}`);
+        const data = await resp.json();
+        if (data.success && data.profile) {
+          const p = data.profile;
+          document.getElementById('doctorName').value = p.display_name || '';
+          document.getElementById('doctorEmail').value = p.email || '';
+          document.getElementById('totalConsultations').value = p.total_consultations || 0;
+        }
+      } catch (err) {
+        console.error('Error loading doctor profile:', err);
+      }
+    }
+
+    document.getElementById('doctorProfileForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const updates = {
+        display_name: document.getElementById('doctorName').value.trim(),
+      };
+
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/doctor/profile`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: authUser.id, updates }),
+        });
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+        document.getElementById('profileHint').textContent = '✓ Profile updated successfully.';
+        document.getElementById('profileHint').style.color = 'var(--success)';
+        loadProfile();
+      } catch (err) {
+        document.getElementById('profileHint').textContent = `❌ ${err.message}`;
+        document.getElementById('profileHint').style.color = 'var(--danger)';
+      }
+    });
+
+    // ============ INITIAL LOAD ============
+
+    // Show the main consultations dashboard on load
+    switchSection('consultations', currentFilter);
+
+    loadConsultations();
+    loadMyAvailability();
+    loadNotifications();
+    loadProfile();
+    loadAllPatients();
+  });
+  </script>
+</body>
+</html>

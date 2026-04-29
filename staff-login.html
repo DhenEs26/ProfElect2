@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Staff Login | EMR System</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body { background: linear-gradient(135deg, #f9fafb 0%, #f1f5f9 100%); }
+    .login-container { max-width: 500px; margin: 4rem auto; }
+    .login-form { background: white; padding: 3rem; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
+    .header { text-align: center; margin-bottom: 2rem; }
+    .header h1 { color: #059669; font-size: 2rem; margin: 0; }
+    .header p { color: #64748b; margin: 0.5rem 0 0 0; }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-form">
+      <div class="header">
+        <h1>👨‍💼 Staff Login</h1>
+        <p>Administrative access to clinic management</p>
+      </div>
+      
+      <form id="staffLoginForm" class="form">
+        <div class="field">
+          <label for="staffEmail">Email Address</label>
+          <input type="email" id="staffEmail" name="email" required placeholder="staff@clinic.com" />
+        </div>
+        
+        <div class="field">
+          <label for="staffPassword">Password</label>
+          <input type="password" id="staffPassword" name="password" required minlength="6" placeholder="••••••••" />
+        </div>
+        
+        <button type="button" class="primary" style="width: 100%; margin-bottom: 1rem;" onclick="window.location.href='staff-register.html'">📝 Register Staff</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE_URL = 'http://localhost:3000';
+    
+    document.getElementById('staffLoginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('staffEmail').value.trim();
+      const password = document.getElementById('staffPassword').value;
+      
+      if (!email || !password) {
+        document.getElementById('staffFormHint').textContent = 'Please enter email and password.';
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role: 'staff', email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          localStorage.setItem('authUser', JSON.stringify(data.user));
+          window.location.href = 'staff-dashboard.html';
+        } else {
+          document.getElementById('staffFormHint').textContent = data.message || 'Login failed.';
+          document.getElementById('staffFormHint').style.color = '#ef4444';
+        }
+      } catch (error) {
+        document.getElementById('staffFormHint').textContent = 'Server error. Please try again.';
+        document.getElementById('staffFormHint').style.color = '#ef4444';
+      }
+    });
+  </script>
+</body>
+</html>

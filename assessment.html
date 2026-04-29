@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Health Assessment | EMR Access</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <header class="brand">
+      <h1>Health Assessment</h1>
+      <p>Please answer the following questions about your current health.</p>
+    </header>
+
+    <section class="card" aria-label="Health assessment">
+      <form id="assessmentForm" class="form" novalidate>
+        <div id="assessmentQuestions"></div>
+
+        <div class="field">
+          <button type="submit" class="primary" id="saveAssessment">Save Assessment</button>
+        </div>
+
+        <p class="hint" id="assessmentHint"></p>
+      </form>
+
+      <button id="goToLogin" type="button" class="primary" style="display: none; margin-top: 1rem;">Go to Login</button>
+    </section>
+
+    <footer class="footer">
+      <p>Built for CP-ABE based EMR &bull; QR code patient onboarding &bull; OCR performance metrics</p>
+    </footer>
+  </main>
+
+  <script>
+    const API_BASE_URL = 'http://localhost:3000';
+    const authUser = JSON.parse(localStorage.getItem('authUser') || 'null');
+    const assessmentForm = document.getElementById('assessmentForm');
+    const assessmentQuestions = document.getElementById('assessmentQuestions');
+    const assessmentHint = document.getElementById('assessmentHint');
+    const goToLoginBtn = document.getElementById('goToLogin');
+
+    if (!authUser || !authUser.id) {
+      assessmentHint.textContent = 'Not signed in. Please register or log in first.';
+      assessmentForm.querySelectorAll('input, button').forEach((el) => (el.disabled = true));
+    }
+
+    const questions = [
+      { key: 'symptoms', question: 'Are you currently experiencing any symptoms or health concerns?' },
+      { key: 'urgent', question: 'Do you consider your condition urgent?' },
+      { key: 'healthStatus', question: 'How would you describe your current health status?', type: 'options', options: ['Excellent', 'Good', 'Fair', 'Poor'] },
+      { key: 'hospitalized', question: 'Have you been hospitalized within the past 12 months?' },
+      { key: 'surgery', question: 'Have you undergone any surgery before?' },
+      { key: 'highBloodPressure', question: 'Have you ever been diagnosed with high blood pressure?' },
+      { key: 'diabetes', question: 'Have you ever been diagnosed with diabetes?' },
+      { key: 'asthma', question: 'Have you ever been diagnosed with asthma or any lung condition?' },
+      { key: 'heartDisease', question: 'Have you ever been diagnosed with heart disease?' },
+      { key: 'kidneyDisease', question: 'Have you ever been diagnosed with kidney disease?' },
+      { key: 'liverDisease', question: 'Have you ever been diagnosed with liver disease?' },
+      { key: 'tuberculosis', question: 'Have you ever been diagnosed with tuberculosis?' },
+      { key: 'cancer', question: 'Have you ever been diagnosed with cancer?' },
+      { key: 'mentalHealth', question: 'Have you ever been diagnosed with a mental health condition?' },
+      { key: 'otherConditions', question: 'Do you have any other existing medical condition?' },
+      { key: 'medications', question: 'Are you currently taking any medication?' },
+      { key: 'maintenanceMedications', question: 'Are you currently taking maintenance medication?' },
+      { key: 'medicineAllergy', question: 'Do you have any allergy to medicine?' },
+      { key: 'foodAllergy', question: 'Do you have any food allergy?' },
+      { key: 'familyHighBloodPressure', question: 'Does your family have a history of high blood pressure?' },
+      { key: 'familyDiabetes', question: 'Does your family have a history of diabetes?' },
+      { key: 'familyHeartDisease', question: 'Does your family have a history of heart disease?' },
+      { key: 'familyCancer', question: 'Does your family have a history of cancer?' },
+      { key: 'familyStroke', question: 'Does your family have a history of stroke?' },
+      { key: 'smoke', question: 'Do you smoke?' },
+      { key: 'alcohol', question: 'Do you drink alcohol?' },
+      { key: 'vape', question: 'Do you use vape or e-cigarettes?' },
+      { key: 'drugs', question: 'Do you use prohibited or recreational drugs?' },
+      { key: 'exercise', question: 'Do you exercise regularly?' },
+      { key: 'feverCough', question: 'Have you recently experienced fever, cough, or colds?' },
+      { key: 'difficultyBreathing', question: 'Have you recently experienced difficulty breathing?' },
+      { key: 'diarrheaVomiting', question: 'Have you recently experienced diarrhea or vomiting?' },
+      { key: 'exposedIllness', question: 'Have you recently been exposed to a contagious illness?' },
+      { key: 'pregnant', question: 'Are you currently pregnant?', type: 'options', options: ['Yes', 'No', 'Not Applicable'] },
+      { key: 'breastfeeding', question: 'Are you currently breastfeeding?', type: 'options', options: ['Yes', 'No', 'Not Applicable'] },
+    ];
+
+    function renderQuestion(q) {
+      const container = document.createElement('div');
+      container.className = 'field';
+
+      const label = document.createElement('label');
+      label.textContent = q.question;
+      container.appendChild(label);
+
+      if (q.type === 'options') {
+        const select = document.createElement('select');
+        select.name = q.key;
+        select.required = true;
+        select.innerHTML = `<option value="">Select</option>` + q.options.map(o => `<option value="${o.toLowerCase().replace(/\s+/g,'_')}">${o}</option>`).join('');
+        container.appendChild(select);
+      } else {
+        const radios = document.createElement('div');
+        radios.style.display = 'flex';
+        radios.style.gap = '1rem';
+
+        ['Yes', 'No'].forEach((option) => {
+          const id = `q-${q.key}-${option.toLowerCase()}`;
+          const wrap = document.createElement('label');
+          wrap.style.display = 'flex';
+          wrap.style.alignItems = 'center';
+          wrap.style.gap = '0.25rem';
+
+          const input = document.createElement('input');
+          input.type = 'radio';
+          input.name = q.key;
+          input.value = option.toLowerCase();
+          input.id = id;
+          input.required = true;
+
+          const span = document.createElement('span');
+          span.textContent = option;
+
+          wrap.appendChild(input);
+          wrap.appendChild(span);
+          radios.appendChild(wrap);
+        });
+
+        container.appendChild(radios);
+      }
+
+      return container;
+    }
+
+    // Render all questions
+    questions.forEach((q) => {
+      assessmentQuestions.appendChild(renderQuestion(q));
+    });
+
+    assessmentForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      assessmentHint.textContent = '';
+
+      if (!authUser || !authUser.id) return;
+
+      const formData = new FormData(assessmentForm);
+      const answers = {};
+      for (const [key, value] of formData.entries()) {
+        answers[key] = value;
+      }
+
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/assessment`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: authUser.id, answers }),
+        });
+        const data = await resp.json();
+        if (!data.success) {
+          throw new Error(data.message || 'Could not save assessment.');
+        }
+
+        assessmentHint.textContent = '✓ Assessment saved successfully! You are now fully registered and can log in.';
+        assessmentHint.style.color = 'var(--success)';
+        assessmentForm.querySelectorAll('input, button').forEach((el) => (el.disabled = true));
+        localStorage.removeItem('authUser');
+        goToLoginBtn.style.display = 'block';
+      } catch (err) {
+        console.error('[ASSESSMENT ERROR]', err);
+        assessmentHint.textContent = `❌ ${err.message}`;
+        assessmentHint.style.color = 'var(--danger)';
+      }
+    });
+
+    goToLoginBtn.addEventListener('click', () => {
+      window.location.href = 'index.html';
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Staff Dashboard | EMR Access</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <header class="brand">
+      <h1>Staff Dashboard</h1>
+      <p>Generate patient registration invite QR codes (valid for 1 hour).</p>
+    </header>
+
+    <section class="card" aria-label="Staff actions">
+      <div class="field">
+        <p id="staffMeta" class="muted"></p>
+      </div>
+
+      <div class="field">
+        <button id="generateInvite" class="primary">Generate Patient Invite QR Code</button>
+      </div>
+
+      <div id="inviteSection" class="hidden">
+        <div class="field">
+          <label>Invite Link</label>
+          <input id="inviteLink" type="text" readonly />
+        </div>
+
+        <div class="field">
+          <label>QR Code (scan to open registration)</label>
+          <div style="padding: 1rem; background: rgba(255,255,255,0.08); border-radius: 12px; display: inline-block;">
+            <img id="qrImage" alt="Patient invite QR code" style="max-width: 240px;" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Expires At</label>
+          <input id="expiresAt" type="text" readonly />
+        </div>
+
+        <div class="field" style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+          <button id="closeQr" class="primary" style="background: rgba(255, 93, 85, 0.9);">Close QR</button>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top: 1rem;">
+        <button id="logout" class="primary" style="background: var(--danger);">Logout</button>
+      </div>
+
+      <p class="hint">Staff can generate patient registration links.</p>
+    </section>
+
+    <footer class="footer">
+      <p>Built for CP-ABE based EMR • QR code patient onboarding • OCR performance metrics</p>
+    </footer>
+  </main>
+
+  <script>
+    const API_BASE_URL = 'http://localhost:3000';
+    const authUser = JSON.parse(localStorage.getItem('authUser') || 'null');
+    const staffMeta = document.getElementById('staffMeta');
+    const inviteSection = document.getElementById('inviteSection');
+    const inviteLinkInput = document.getElementById('inviteLink');
+    const expiresAtInput = document.getElementById('expiresAt');
+    const qrImage = document.getElementById('qrImage');
+
+    function redirectToLogin() {
+      localStorage.removeItem('authUser');
+      window.location.href = 'index.html';
+    }
+
+    function showError(message) {
+      alert(message);
+    }
+
+    function padTwo(value) {
+      return String(value).padStart(2, '0');
+    }
+
+    function formatLocalDate(isoString) {
+      const d = new Date(isoString);
+      if (Number.isNaN(d.getTime())) return isoString;
+      return `${d.toLocaleDateString()} ${padTwo(d.getHours())}:${padTwo(d.getMinutes())}`;
+    }
+
+    function setQrImage(dataUrl) {
+      qrImage.src = dataUrl;
+      qrImage.alt = 'Patient invite QR code';
+    }
+
+    function closeInviteSection() {
+      inviteSection.classList.add('hidden');
+      qrImage.src = '';
+      inviteLinkInput.value = '';
+      expiresAtInput.value = '';
+    }
+
+    async function generateInvite() {
+      if (!authUser || authUser.role !== 'staff') {
+        showError('Only staff can generate invites.');
+        redirectToLogin();
+        return;
+      }
+
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/staff/invite`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: authUser.id }),
+        });
+
+        const text = await resp.text();
+        let data;
+        try {
+          data = text ? JSON.parse(text) : null;
+        } catch {
+          data = null;
+        }
+
+        if (!resp.ok) {
+          throw new Error(data?.message || `Failed to generate invite (status ${resp.status})`);
+        }
+
+        inviteSection.classList.remove('hidden');
+        inviteLinkInput.value = data.invite.inviteUrl;
+        expiresAtInput.value = formatLocalDate(data.invite.expiresAt);
+        setQrImage(data.invite.qrDataUrl);
+      } catch (err) {
+        showError(`Could not create invite: ${err.message}`);
+      }
+    }
+
+    document.getElementById('generateInvite').addEventListener('click', generateInvite);
+    document.getElementById('closeQr').addEventListener('click', closeInviteSection);
+    document.getElementById('logout').addEventListener('click', redirectToLogin);
+
+    if (!authUser || authUser.role !== 'staff') {
+      redirectToLogin();
+    } else {
+      staffMeta.textContent = `Logged in as ${authUser.email}`;
+    }
+  </script>
+</body>
+</html>

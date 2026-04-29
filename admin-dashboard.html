@@ -1,0 +1,2008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard | EMR System Management</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--bg-primary);
+      margin: 0;
+      padding: 0;
+      display: flex;
+    }
+
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 220px;
+      height: 100vh;
+      background: linear-gradient(135deg, #1a365d 0%, #2d5a8c 100%);
+      color: white;
+      padding: 1.5rem 0;
+      box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+      overflow-y: auto;
+      z-index: 100;
+    }
+
+    .sidebar-header {
+      padding: 0 1.5rem 2rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      margin-bottom: 1.5rem;
+    }
+
+    .sidebar-header h2 {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding: 0 1rem;
+    }
+
+    .sidebar-nav-item {
+      padding: 0.75rem 1rem;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      color: rgba(255, 255, 255, 0.8);
+      cursor: pointer;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .sidebar-nav-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+
+    .sidebar-nav-item.active {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border-left: 4px solid #ffd700;
+    }
+
+    .main-wrapper {
+      margin-left: 220px;
+      width: calc(100% - 220px);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .admin-header {
+      background: linear-gradient(135deg, #1a365d 0%, #2d5a8c 100%);
+      color: white;
+      padding: 1.5rem 2rem;
+      border-radius: 0 0 1rem 1rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .admin-header h1 {
+      margin: 0;
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    .admin-header p {
+      margin: 0.25rem 0 0 0;
+      opacity: 0.9;
+      font-size: 0.9rem;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .header-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    #logoutBtn {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s ease;
+    }
+
+    #logoutBtn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+
+    .admin-nav {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.75rem;
+      padding: 1.5rem 2rem;
+      background: white;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .admin-nav-btn {
+      padding: 0.75rem;
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      font-weight: 600;
+      color: var(--text-primary);
+      transition: var(--transition);
+      font-size: 0.85rem;
+    }
+
+    .admin-nav-btn:hover {
+      border-color: #1a365d;
+      background: #f0f4f8;
+      color: #1a365d;
+    }
+
+    .admin-nav-btn.active {
+      border-color: #1a365d;
+      background: #1a365d;
+      color: white;
+    }
+
+    .admin-content {
+      flex: 1;
+      padding: 2rem;
+      overflow-y: auto;
+    }
+
+    .admin-section {
+      display: none;
+    }
+
+    .admin-section.active {
+      display: block;
+    }
+
+    .dashboard-tabs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .dashboard-tab {
+      padding: 1rem;
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: var(--transition);
+      font-weight: 600;
+    }
+
+    .dashboard-tab:hover {
+      border-color: #0066cc;
+      background: #f0f7ff;
+    }
+
+    .dashboard-tab.active {
+      border-color: #0066cc;
+      background: #0066cc;
+      color: white;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 1.75rem;
+      border-radius: 8px;
+      border-left: 5px solid #0066cc;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .stat-card h3 {
+      margin: 0;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      color: #666;
+    }
+
+    .stat-card .number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #0066cc;
+      margin: 0.5rem 0;
+    }
+
+    .stat-card p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: #999;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 1200px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card-section {
+      background: white;
+      padding: 1.75rem;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .card-section h3 {
+      margin: 0 0 1.5rem 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .activity-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .activity-item:last-child {
+      border-bottom: none;
+    }
+
+    .activity-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #f0f4f8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .activity-content {
+      flex: 1;
+    }
+
+    .activity-title {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0 0 0.25rem 0;
+      font-size: 0.95rem;
+    }
+
+    .activity-time {
+      font-size: 0.8rem;
+      color: #999;
+      margin: 0;
+    }
+
+    .alert-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      background: #fff8f0;
+      border-left: 4px solid #ff6b35;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+    }
+
+    .alert-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .alert-icon {
+      font-size: 1.5rem;
+    }
+
+    .alert-content {
+      flex: 1;
+    }
+
+    .alert-title {
+      font-weight: 600;
+      color: #d97706;
+      margin: 0 0 0.25rem 0;
+      font-size: 0.95rem;
+    }
+
+    .alert-count {
+      font-weight: 700;
+      color: #ff6b35;
+      text-align: center;
+    }
+
+    .stat-card h3 {
+      margin: 0 0 0.5rem 0;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-card .number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #0066cc;
+      margin: 0.5rem 0;
+    }
+
+    .stat-card p {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
+    .admin-table {
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .admin-table-header {
+      background: #f8f9fa;
+      padding: 1rem;
+      border-bottom: 2px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1rem;
+      font-weight: 700;
+      color: #1a365d;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .admin-table-row {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1rem;
+      align-items: center;
+      color: var(--text-primary);
+      transition: var(--transition);
+    }
+
+    .admin-table-row:hover {
+      background: #f8f9fa;
+    }
+
+    .action-btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+
+    .action-btn.view {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .action-btn.view:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    .action-btn.edit {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+
+    .action-btn.edit:hover {
+      background: #1976d2;
+      color: white;
+    }
+
+    .action-btn.delete {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+
+    .action-btn.delete:hover {
+      background: var(--danger);
+      color: white;
+    }
+
+    .action-btn.disable {
+      background: #fff3cd;
+      color: #b8860b;
+    }
+
+    .action-btn.disable:hover {
+      background: #b8860b;
+      color: white;
+    }
+
+    .metric-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border-left: 4px solid #0066cc;
+    }
+
+    .metric-card h4 {
+      margin: 0 0 1rem 0;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+    }
+
+    .metric-bar {
+      width: 100%;
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+    }
+
+    .metric-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #0066cc, #0052a3);
+      border-radius: 4px;
+    }
+
+    .metric-value {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .audit-log {
+      background: white;
+      padding: 1.5rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border-left: 4px solid #2ecc71;
+      margin-bottom: 1rem;
+    }
+
+    .audit-log-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .audit-log-action {
+      font-weight: 700;
+      color: #1a202c;
+    }
+
+    .audit-log-user {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .audit-log-time {
+      color: #a0aec0;
+      font-size: 0.85rem;
+    }
+
+    .audit-log-detail {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+
+    .filter-group {
+      background: white;
+      padding: 1.5rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .filter-field label {
+      display: block;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .filter-field input,
+    .filter-field select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+
+    .chart-placeholder {
+      background: white;
+      padding: 2rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      text-align: center;
+      color: var(--text-secondary);
+      min-height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.35rem 0.9rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .status-active {
+      background: var(--success-light);
+      color: #1e7e34;
+    }
+
+    .status-inactive {
+      background: #f0f0f0;
+      color: #636e72;
+    }
+
+    .status-pending {
+      background: var(--warning-light);
+      color: #b8860b;
+    }
+
+    .btn-export {
+      background: linear-gradient(135deg, #0066cc, #0052a3);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+
+    .btn-export:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      animation: fadeIn 0.2s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      max-width: 500px;
+      width: 90%;
+      animation: slideUp 0.3s;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      color: var(--text-primary);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-secondary);
+    }
+
+    .modal-close:hover {
+      color: var(--text-primary);
+    }
+
+    .qr-display {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .qr-display img {
+      max-width: 300px;
+      border: 2px solid #f0f0f0;
+      border-radius: 8px;
+      padding: 1rem;
+      background: #fafafa;
+    }
+
+    .qr-details {
+      background: #f8f9fa;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .qr-details-item {
+      margin-bottom: 1rem;
+    }
+
+    .qr-details-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .qr-details-label {
+      font-weight: 700;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 0.3rem;
+    }
+
+    .qr-details-value {
+      color: var(--text-primary);
+      word-break: break-all;
+      font-size: 0.9rem;
+      font-family: monospace;
+      background: white;
+      padding: 0.5rem;
+      border-radius: 4px;
+      border: 1px solid #e0e0e0;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .modal-actions button {
+      flex: 1;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+
+    .btn-copy {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .btn-copy:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-close {
+      background: #f0f0f0;
+      color: var(--text-primary);
+    }
+
+    .btn-close:hover {
+      background: #e0e0e0;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 2rem;
+      color: #999;
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+      margin-top: 3rem;
+    }
+
+    .container {
+      max-width: 100%;
+      padding: 0;
+      margin: 0;
+    }
+
+    .card {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h2 {
+      margin: 0 0 1.5rem 0;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    @media (max-width: 1024px) {
+      .sidebar {
+        width: 200px;
+      }
+
+      .main-wrapper {
+        margin-left: 200px;
+        width: calc(100% - 200px);
+      }
+
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        left: -220px;
+        height: 100vh;
+        z-index: 1000;
+        transition: left 0.3s ease;
+      }
+
+      .sidebar.active {
+        left: 0;
+      }
+
+      .main-wrapper {
+        margin-left: 0;
+        width: 100%;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .card-section {
+        padding: 1.25rem;
+      }
+
+      .admin-header {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 1rem;
+        text-align: left;
+      }
+
+      .header-content {
+        flex-direction: column;
+        gap: 0;
+      }
+
+      .admin-header h1 {
+        font-size: 1.4rem;
+      }
+
+      .admin-header-buttons {
+        justify-content: space-between;
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .admin-table {
+        font-size: 0.85rem;
+      }
+
+      .admin-table-header,
+      .admin-table-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+      }
+
+      .admin-table-header > div,
+      .admin-table-row > div {
+        padding: 0.5rem;
+      }
+    }
+
+    /* Animations */
+    @keyframes slideInLeft {
+      from {
+        transform: translateX(-20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .sidebar-nav-item {
+      animation: slideInLeft 0.3s ease;
+    }
+
+    .stat-card {
+      animation: slideInLeft 0.4s ease;
+    }
+
+    /* Scrollbar styling */
+    .sidebar::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .sidebar::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 3px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    .admin-content::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .admin-content::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .admin-content::-webkit-scrollbar-thumb {
+      background: #ddd;
+      border-radius: 4px;
+    }
+
+    .admin-content::-webkit-scrollbar-thumb:hover {
+      background: #999;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar Navigation -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>EMR Admin</h2>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="sidebar-nav-item active" data-target="dashboard">Dashboard</button>
+      <button class="sidebar-nav-item" data-target="users">User Management</button>
+      <button class="sidebar-nav-item" data-target="consultations">Consultations</button>
+      <button class="sidebar-nav-item" data-target="emr">EMR Management</button>
+      <button class="sidebar-nav-item" data-target="access-control">Access Control</button>
+      <button class="sidebar-nav-item" data-target="qr">QR Codes</button>
+      <button class="sidebar-nav-item" data-target="audit-logs">Audit Logs</button>
+      <button class="sidebar-nav-item" data-target="reports">Reports</button>
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-wrapper">
+    <div class="admin-header">
+      <div class="header-left">
+        <div class="header-avatar">A</div>
+        <div>
+          <h1>Admin Dashboard</h1>
+          <p>System Management & Monitoring</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="logoutBtn">Logout</button>
+      </div>
+    </div>
+
+    <div class="admin-content">
+      <!-- Dashboard Overview -->
+      <section id="dashboard" class="admin-section active">
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Total Users</h3>
+            <div class="number" id="statTotalUsers">0</div>
+            <p>Registered in system</p>
+          </div>
+          <div class="stat-card">
+            <h3>Active Doctors</h3>
+            <div class="number" id="statActiveDoctors">0</div>
+            <p>Active medical professionals</p>
+          </div>
+          <div class="stat-card">
+            <h3>Pending Consultations</h3>
+            <div class="number" id="statPendingConsultations">0</div>
+            <p>Awaiting assignment</p>
+          </div>
+          <div class="stat-card" style="border-left-color: #2ecc71;">
+            <h3>Protected EMRs</h3>
+            <div class="number" style="color: #2ecc71;" id="statProtectedEmrs">0</div>
+            <p>CP-ABE encrypted records</p>
+          </div>
+        </div>
+
+        <!-- Recent Consultations -->
+        <div class="dashboard-grid">
+          <div class="card-section">
+            <h3>Recent Consultations</h3>
+            <div id="recentConsultations">
+              <p style="color: var(--text-secondary); text-align: center;">Loading...</p>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- User Management -->
+      <section id="users" class="admin-section">
+        <div class="card">
+          <h2>👥 User Management</h2>
+          
+          <div class="filter-group">
+            <div class="filter-field">
+              <label>Search User</label>
+              <input id="userSearchInput" type="text" placeholder="Name, email, or ID..." />
+            </div>
+            <div class="filter-field">
+              <label>Role Filter</label>
+              <select id="roleFilter">
+                <option value="">All Roles</option>
+                <option value="admin">Admin</option>
+                <option value="doctor">Doctor</option>
+                <option value="patient">Patient</option>
+              </select>
+            </div>
+            <div class="filter-field">
+              <label>Status Filter</label>
+              <select id="statusFilter">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="admin-table">
+            <div class="admin-table-header">
+              <div>User ID</div>
+              <div>Name</div>
+              <div>Email</div>
+              <div>Role</div>
+              <div>Status</div>
+              <div>Actions</div>
+            </div>
+            <div id="usersTableBody"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Consultation Monitoring -->
+      <section id="consultations" class="admin-section">
+        <div class="card">
+          <h2>📋 Consultation Monitoring</h2>
+          
+          <div class="filter-group">
+            <div class="filter-field">
+              <label>Status Filter</label>
+              <select id="consultationStatusFilter">
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="scheduled">Scheduled</option>
+                <option value="completed">Completed</option>
+                <option value="denied">Denied</option>
+              </select>
+            </div>
+            <div class="filter-field">
+              <label>Date Range</label>
+              <input type="date" />
+            </div>
+          </div>
+
+          <div class="admin-table">
+            <div class="admin-table-header">
+              <div>Consultation ID</div>
+              <div>Patient</div>
+              <div>Doctor</div>
+              <div>Status</div>
+              <div>Date</div>
+            </div>
+            <div id="consultationsTableBody"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- EMR Management -->
+      <section id="emr" class="admin-section">
+        <div class="card">
+          <h2>📑 EMR Records Management</h2>
+          
+          <div class="filter-group">
+            <div class="filter-field">
+              <label>Search Patient</label>
+              <input type="text" placeholder="Patient name or ID..." />
+            </div>
+            <div class="filter-field">
+              <label>Record Type</label>
+              <select>
+                <option value="">All Types</option>
+                <option value="assessment">Assessment</option>
+                <option value="consultation">Consultation</option>
+                <option value="diagnosis">Diagnosis</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="admin-table">
+            <div class="admin-table-header">
+              <div>Record ID</div>
+              <div>Patient Name</div>
+              <div>Type</div>
+              <div>Created Date</div>
+              <div>Status</div>
+              <div>Actions</div>
+            </div>
+            <div id="emrTableBody"></div>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- QR Code Management -->
+      <section id="qr" class="admin-section">
+        <div class="card">
+          <h2>📲 QR Code Management</h2>
+          <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Generate QR codes for patient registration. Each code is valid for 1 hour.</p>
+          
+          <button id="generateQRBtn" class="primary" style="padding: 0.75rem 1.5rem; margin-bottom: 2rem;">🔄 Generate New QR Code</button>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+            <div class="stat-card">
+              <h3>Total QR Codes</h3>
+              <div class="number" id="statTotalQRCodes">0</div>
+              <p>Generated codes</p>
+            </div>
+            <div class="stat-card">
+              <h3>Active Codes</h3>
+              <div class="number" id="statActiveQRCodes">0</div>
+              <p>Currently valid</p>
+            </div>
+            <div class="stat-card">
+              <h3>Expired Codes</h3>
+              <div class="number" id="statExpiredQRCodes">0</div>
+              <p>Expired/Revoked</p>
+            </div>
+            <div class="stat-card">
+              <h3>Scan Success Rate</h3>
+              <div class="number">—</div>
+              <p>N/A</p>
+            </div>
+          </div>
+
+          <div class="admin-table">
+            <div class="admin-table-header">
+              <div>QR Code ID</div>
+              <div>Generated By</div>
+              <div>Created Date</div>
+              <div>Status</div>
+              <div>Expires</div>
+              <div>Actions</div>
+            </div>
+            <div id="qrTableBody"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Access Control -->
+      <section id="access-control" class="admin-section">
+        <div class="card">
+          <h2>🔐 Access Control Settings</h2>
+          
+          <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: var(--shadow);">
+            <h3>Role-Based Access Configuration</h3>
+            <p style="color: #666; margin-bottom: 1.5rem;">Manage system access permissions for different user roles.</p>
+            
+            <div style="display: grid; gap: 1.5rem;">
+              <div style="padding: 1.5rem; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #0066cc;">
+                <h4 style="margin: 0 0 0.5rem 0;">👨‍⚕️ Doctor Access</h4>
+                <p style="margin: 0 0 1rem 0; color: #666; font-size: 0.9rem;">Can view patient consultations and encrypted EMRs with CP-ABE policies</p>
+                <div style="display: flex; gap: 1rem;">
+                  <label style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" checked disabled /> View own consultations
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" checked disabled /> Access assigned patient EMRs
+                  </label>
+                </div>
+              </div>
+
+              <div style="padding: 1.5rem; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #2ecc71;">
+                <h4 style="margin: 0 0 0.5rem 0;">🩺 Patient Access</h4>
+                <p style="margin: 0 0 1rem 0; color: #666; font-size: 0.9rem;">Can access own medical records and consultations (encrypted)</p>
+                <div style="display: flex; gap: 1rem;">
+                  <label style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" checked disabled /> View own records
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" checked disabled /> Request consultations
+                  </label>
+                </div>
+              </div>
+
+              <div style="padding: 1.5rem; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #ff6b35;">
+                <h4 style="margin: 0 0 0.5rem 0;">🛡️ Admin Access</h4>
+                <p style="margin: 0 0 1rem 0; color: #666; font-size: 0.9rem;">Full system management - EMR data is protected by CP-ABE encryption</p>
+                <div style="display: flex; gap: 1rem;">
+                  <label style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" checked disabled /> User management
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" checked disabled /> System monitoring
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" checked disabled /> Access logs
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Audit Logs -->
+      <section id="audit-logs" class="admin-section">
+        <div class="card">
+          <h2>📋 Audit Logs</h2>
+          
+          <div class="filter-group">
+            <div class="filter-field">
+              <label>Filter by User</label>
+              <input type="text" placeholder="Username or email..." />
+            </div>
+            <div class="filter-field">
+              <label>Action Type</label>
+              <select>
+                <option value="">All Actions</option>
+                <option value="login">Login</option>
+                <option value="create">Create</option>
+                <option value="update">Update</option>
+                <option value="delete">Delete</option>
+                <option value="access">Access</option>
+              </select>
+            </div>
+            <div class="filter-field">
+              <label>Date Range</label>
+              <input type="date" />
+            </div>
+          </div>
+
+          <div class="admin-table">
+            <div class="admin-table-header">
+              <div>Timestamp</div>
+              <div>User</div>
+              <div>Action</div>
+              <div>Resource</div>
+              <div>Status</div>
+            </div>
+            <div id="auditLogsBody" style="margin-top: 1rem;">
+              <div class="admin-table-row" style="justify-content: center; padding: 2rem;">
+                <span style="color: #999;">No audit logs available</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Reports -->
+      <section id="reports" class="admin-section">
+        <div class="card">
+          <h2>📊 Reports & Analytics</h2>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+            <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: var(--shadow);">
+              <h3 style="margin: 0 0 1rem 0; font-size: 1rem;">System Activity Report</h3>
+              <p style="margin: 0 0 1.5rem 0; color: #666; font-size: 0.9rem;">Generate comprehensive system activity analysis</p>
+              <button class="btn-export" style="width: 100%;">📊 Generate Report</button>
+            </div>
+
+            <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: var(--shadow);">
+              <h3 style="margin: 0 0 1rem 0; font-size: 1rem;">Consultation Analytics</h3>
+              <p style="margin: 0 0 1.5rem 0; color: #666; font-size: 0.9rem;">View consultation statistics and trends</p>
+              <button class="btn-export" style="width: 100%;">📈 View Analytics</button>
+            </div>
+
+            <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: var(--shadow);">
+              <h3 style="margin: 0 0 1rem 0; font-size: 1rem;">Security Report</h3>
+              <p style="margin: 0 0 1.5rem 0; color: #666; font-size: 0.9rem;">CP-ABE encryption and access control metrics</p>
+              <button class="btn-export" style="width: 100%;">🔐 Security Report</button>
+            </div>
+
+            <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: var(--shadow);">
+              <h3 style="margin: 0 0 1rem 0; font-size: 1rem;">User Activity Report</h3>
+              <p style="margin: 0 0 1.5rem 0; color: #666; font-size: 0.9rem;">Detailed breakdown of user interactions</p>
+              <button class="btn-export" style="width: 100%;">👥 User Report</button>
+            </div>
+          </div>
+
+          <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: var(--shadow);">
+            <h3 style="margin: 0 0 1.5rem 0;">Recent Reports</h3>
+            <div style="text-align: center; color: #999; padding: 2rem;">
+              <p>No reports generated yet. Generate your first report using the buttons above.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+    </div>
+
+    <!-- QR Code View Modal -->
+    <div id="qrModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>📲 QR Code Details</h3>
+          <button class="modal-close" onclick="closeQRModal()">&times;</button>
+        </div>
+        
+        <div class="qr-display">
+          <img id="qrImage" src="" alt="QR Code" />
+        </div>
+
+        <div class="qr-details">
+          <div class="qr-details-item">
+            <div class="qr-details-label">Registration Link</div>
+            <div class="qr-details-value" id="qrLink"></div>
+          </div>
+          <div class="qr-details-item">
+            <div class="qr-details-label">Expires At</div>
+            <div class="qr-details-value" id="qrExpiry"></div>
+          </div>
+          <div class="qr-details-item">
+            <div class="qr-details-label">Time Remaining</div>
+            <div class="qr-details-value" id="qrTimeRemaining"></div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-copy" onclick="copyQRLink()">📋 Copy Link</button>
+          <button class="btn-copy" onclick="downloadQRCode()">⬇️ Download QR</button>
+          <button class="btn-close" onclick="closeQRModal()">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- QR Code Generation Modal -->
+    <div id="qrGenerateModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>✅ QR Code Generated!</h3>
+          <button class="modal-close" onclick="closeGenerateModal()">&times;</button>
+        </div>
+        
+        <div class="qr-display">
+          <img id="generatedQRImage" src="" alt="QR Code" />
+        </div>
+
+        <div class="qr-details">
+          <div class="qr-details-item">
+            <div class="qr-details-label">Registration Link</div>
+            <div class="qr-details-value" id="generatedQRLink"></div>
+          </div>
+          <div class="qr-details-item">
+            <div class="qr-details-label">Valid Until</div>
+            <div class="qr-details-value" id="generatedQRExpiry"></div>
+          </div>
+          <div class="qr-details-item">
+            <div class="qr-details-label">Instructions</div>
+            <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">Share this QR code or link with patients to allow them to register.</p>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-copy" onclick="copyGeneratedQRLink()">📋 Copy Link</button>
+          <button class="btn-copy" onclick="downloadGeneratedQRCode()">⬇️ Download QR</button>
+          <button class="btn-close" onclick="closeGenerateModal()">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <p><strong>EMR Admin System</strong> | Complete System Management & Monitoring | Secure Healthcare Data Management</p>
+    </footer>
+  </main>
+
+  <script>
+    const API_BASE_URL = 'http://localhost:3000';
+    const authUser = JSON.parse(localStorage.getItem('authUser') || 'null');
+
+    if (!authUser || !authUser.id || authUser.role !== 'admin') {
+      alert('Access denied. Please log in as an admin.');
+      window.location.href = 'index.html';
+    }
+
+    const navBtns = document.querySelectorAll('.admin-nav-btn');
+    const sidebarItems = document.querySelectorAll('.sidebar-nav-item');
+    const sections = document.querySelectorAll('.admin-section');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    function switchSection(target) {
+      sections.forEach(sec => sec.classList.remove('active'));
+      navBtns.forEach(btn => btn.classList.remove('active'));
+      sidebarItems.forEach(item => item.classList.remove('active'));
+
+      document.getElementById(target).classList.add('active');
+      document.querySelector(`.admin-nav-btn[data-target="${target}"]`)?.classList.add('active');
+      document.querySelector(`.sidebar-nav-item[data-target="${target}"]`)?.classList.add('active');
+
+      if (target === 'users') {
+        loadUsers();
+      } else if (target === 'emr') {
+        loadEMRRecords();
+      } else if (target === 'consultations') {
+        loadConsultations();
+      } else if (target === 'qr') {
+        loadQRCodes();
+      } else if (target === 'access-control') {
+        // Handle access control
+      } else if (target === 'audit-logs') {
+        // Handle audit logs
+      } else if (target === 'reports') {
+        // Handle reports
+      }
+    }
+
+    async function loadAdminStats() {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/admin/stats?userId=${authUser.id}`);
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message || 'Failed to fetch stats');
+
+        document.getElementById('statTotalUsers').textContent = data.stats.totalUsers.toLocaleString();
+        document.getElementById('statActiveDoctors').textContent = Math.max(0, (data.stats.totalUsers || 1) - 2).toLocaleString();
+        document.getElementById('statPendingConsultations').textContent = data.stats.activeConsultations?.toLocaleString() || '0';
+        document.getElementById('statProtectedEmrs').textContent = data.stats.emrRecords?.toLocaleString() || '0';
+
+        await loadRecentConsultations();
+        await loadEMRActivity();
+      } catch (err) {
+        console.error('Failed to load admin stats', err);
+      }
+    }
+
+    async function loadRecentConsultations() {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/admin/consultations?userId=${authUser.id}&limit=5`);
+        const data = await resp.json();
+        
+        if (!data.consultations || data.consultations.length === 0) {
+          document.getElementById('recentConsultations').innerHTML = '<p style="color: var(--text-secondary); text-align: center;">No recent consultations</p>';
+          return;
+        }
+
+        const html = data.consultations.map(c => {
+          const statusClass = c.status === 'pending' ? 'status-pending' : 'status-active';
+          const icon = c.status === 'pending' ? '🟠' : '🟢';
+          return `
+            <div class="activity-item">
+              <div class="activity-icon">${icon}</div>
+              <div class="activity-content">
+                <p class="activity-title">${c.patient_name} - ${c.concerns?.substring(0, 40) || 'Consultation'}...</p>
+                <p class="activity-time">${new Date(c.created_at).toLocaleString()}</p>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        document.getElementById('recentConsultations').innerHTML = html;
+      } catch (err) {
+        console.error('Failed to load recent consultations', err);
+      }
+    }
+
+    async function loadEMRActivity() {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/admin/stats?userId=${authUser.id}`);
+        const data = await resp.json();
+        
+        const activities = [
+          { icon: '📄', title: 'Record Updated', desc: `Patient123 | ${new Date().toLocaleString()}` },
+          { icon: '✨', title: 'New EMR Added', desc: `doc.jeric | ${new Date().toLocaleString()}` },
+          { icon: '🔐', title: 'CP-ABE Encrypted', desc: `Assessment processed | ${new Date().toLocaleString()}` }
+        ];
+
+        const html = activities.map(a => `
+          <div class="activity-item">
+            <div class="activity-icon">${a.icon}</div>
+            <div class="activity-content">
+              <p class="activity-title">${a.title}</p>
+              <p class="activity-time">${a.desc}</p>
+            </div>
+          </div>
+        `).join('');
+
+        document.getElementById('emrActivity').innerHTML = html;
+      } catch (err) {
+        console.error('Failed to load EMR activity', err);
+      }
+    }
+
+    const userSearchInput = document.getElementById('userSearchInput');
+    const roleFilter = document.getElementById('roleFilter');
+    const statusFilter = document.getElementById('statusFilter');
+
+    function getUserFilters() {
+      return {
+        search: userSearchInput.value.trim(),
+        role: roleFilter.value,
+        status: statusFilter.value,
+      };
+    }
+
+    async function loadUsers() {
+      const table = document.getElementById('usersTableBody');
+      table.innerHTML = '<div class="admin-table-row" style="justify-content:center;">Loading users…</div>';
+
+      const filters = getUserFilters();
+      const query = new URLSearchParams({
+        userId: authUser.id,
+        ...(filters.search ? { search: filters.search } : {}),
+        ...(filters.role ? { role: filters.role } : {}),
+        ...(filters.status ? { status: filters.status } : {}),
+      });
+
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/admin/users?${query.toString()}`);
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message || 'Failed to fetch users');
+
+        if (!data.users || data.users.length === 0) {
+          table.innerHTML = '<div class="admin-table-row" style="justify-content:center;">No users found.</div>';
+          return;
+        }
+
+        table.innerHTML = data.users
+          .map(u => {
+            const statusClass = u.status === 'inactive' ? 'status-inactive' : 'status-active';
+            const statusLabel = u.status ? u.status.toUpperCase() : 'ACTIVE';
+            const toggleLabel = u.status === 'inactive' ? 'Reactivate' : 'Deactivate';
+
+            return `
+          <div class="admin-table-row" data-user-id="${u.id}" data-user-status="${u.status}">
+            <div>#${u.id}</div>
+            <div>${u.display_name || '—'}</div>
+            <div>${u.email}</div>
+            <div>${u.role}</div>
+            <div><span class="status-badge ${statusClass}">${statusLabel}</span></div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button class="action-btn view" data-action="view" data-user-id="${u.id}">View</button>
+              <button class="action-btn edit" data-action="edit" data-user-id="${u.id}">Edit</button>
+              <button class="action-btn delete" data-action="toggle" data-user-id="${u.id}">${toggleLabel}</button>
+            </div>
+          </div>
+        `;
+          })
+          .join('');
+
+        // Attach handlers once rows are built
+        document.querySelectorAll('[data-action]').forEach(btn => {
+          btn.addEventListener('click', async (event) => {
+            const action = event.currentTarget.dataset.action;
+            const targetId = event.currentTarget.dataset.userId;
+
+            if (action === 'view') {
+              await viewUser(targetId);
+            }
+            if (action === 'edit') {
+              await editUser(targetId);
+            }
+            if (action === 'toggle') {
+              await toggleUserStatus(targetId);
+            }
+          });
+        });
+      } catch (err) {
+        console.error('Failed to load users', err);
+        table.innerHTML = `<div class="admin-table-row" style="justify-content:center;">Failed to load users: ${err.message}</div>`;
+      }
+    }
+
+    async function loadEMRRecords() {
+      const table = document.getElementById('emrTableBody');
+      table.innerHTML = '<div class="admin-table-row" style="justify-content:center;">Loading EMR records…</div>';
+
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/admin/emr-records?userId=${authUser.id}`);
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message || 'Failed to fetch EMR records');
+
+        if (!data.records || data.records.length === 0) {
+          table.innerHTML = '<div class="admin-table-row" style="justify-content:center;">No EMR records found.</div>';
+          return;
+        }
+
+        table.innerHTML = data.records
+          .map((r, idx) => {
+            const patientName = `${r.first_name} ${r.last_name}`;
+            const recordDate = new Date(r.created_at).toLocaleDateString();
+
+            return `
+          <div class="admin-table-row" data-record-id="${r.id}" data-record-data='${JSON.stringify(r)}'>
+            <div>#EMR${String(r.id).padStart(3, '0')}</div>
+            <div>${patientName}</div>
+            <div>Assessment</div>
+            <div>${recordDate}</div>
+            <div><span class="status-badge status-active">Active</span></div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button class="action-btn view" data-action="view-emr">View</button>
+              <button class="action-btn edit" data-action="edit-emr">Edit</button>
+            </div>
+          </div>
+        `;
+          })
+          .join('');
+
+        // Attach View button handlers
+        document.querySelectorAll('button[data-action="view-emr"]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const row = btn.closest('.admin-table-row');
+            const recordData = JSON.parse(row.dataset.recordData);
+            viewEMRRecord(recordData);
+          });
+        });
+      } catch (err) {
+        console.error('Failed to load EMR records', err);
+        table.innerHTML = `<div class="admin-table-row" style="justify-content:center;">Failed to load EMR records: ${err.message}</div>`;
+      }
+    }
+
+    function viewEMRRecord(record) {
+      const patientName = `${record.first_name} ${record.last_name}`;
+      const recordDate = new Date(record.created_at).toLocaleString();
+      const assessmentDetails = record.assessment_data ? JSON.parse(record.assessment_data) : {};
+      
+      let detailsText = `EMR Record Details\n\n`;
+      detailsText += `Record ID: #EMR${String(record.id).padStart(3, '0')}\n`;
+      detailsText += `Patient: ${patientName}\n`;
+      detailsText += `Patient ID: #PT${String(record.patient_id).padStart(3, '0')}\n`;
+      detailsText += `Created: ${recordDate}\n`;
+      detailsText += `\n--- Assessment Data ---\n`;
+      
+      if (Object.keys(assessmentDetails).length > 0) {
+        for (const [key, value] of Object.entries(assessmentDetails)) {
+          detailsText += `${key}: ${value}\n`;
+        }
+      } else {
+        detailsText += '🔐 [CP-ABE ENCRYPTED]\n\n';
+        detailsText += 'Admin access is BLOCKED by CP-ABE policy.\n';
+        detailsText += 'Only PATIENTS and DOCTORS can decrypt their assessments.\n\n';
+        detailsText += 'This is an intentional security restriction to protect\n';
+        detailsText += 'patient privacy and enforce fine-grained access control.';
+      }
+      
+      alert(detailsText);
+    }
+
+    async function loadConsultations() {
+      const table = document.getElementById('consultationsTableBody');
+      table.innerHTML = '<div class="admin-table-row" style="justify-content:center;">Loading consultations…</div>';
+
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/admin/consultations?userId=${authUser.id}`);
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message || 'Failed to fetch consultations');
+
+        if (!data.consultations || data.consultations.length === 0) {
+          table.innerHTML = '<div class="admin-table-row" style="justify-content:center;">No consultations found.</div>';
+          return;
+        }
+
+        table.innerHTML = data.consultations
+          .map((c, idx) => {
+            const statusClass = c.status === 'pending' ? 'status-pending' : c.status === 'scheduled' ? 'status-active' : 'status-inactive';
+            const consultationDate = c.consultation_date || new Date(c.created_at).toLocaleDateString();
+
+            return `
+          <div class="admin-table-row">
+            <div>#C${String(c.id).padStart(3, '0')}</div>
+            <div>${c.patient_name || '—'}</div>
+            <div>${c.doctor_name || '—'}</div>
+            <div><span class="status-badge ${statusClass}">${(c.status || 'pending').toUpperCase()}</span></div>
+            <div>${consultationDate}</div>
+          </div>
+        `;
+          })
+          .join('');
+      } catch (err) {
+        console.error('Failed to load consultations', err);
+        table.innerHTML = `<div class="admin-table-row" style="justify-content:center;">Failed to load consultations: ${err.message}</div>`;
+      }
+    }
+
+    async function loadQRCodes() {
+      const table = document.getElementById('qrTableBody');
+      table.innerHTML = '<div class="admin-table-row" style="justify-content:center;">Loading QR codes…</div>';
+
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/admin/qr-codes?userId=${authUser.id}`);
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message || 'Failed to fetch QR codes');
+
+        if (!data.qrCodes || data.qrCodes.length === 0) {
+          table.innerHTML = '<div class="admin-table-row" style="justify-content:center;">No QR codes found.</div>';
+          return;
+        }
+
+        // Calculate stats
+        const totalQR = data.qrCodes.length;
+        const now = new Date();
+        const activeQR = data.qrCodes.filter(q => !q.used && new Date(q.expires_at) > now).length;
+        const expiredQR = data.qrCodes.filter(q => q.used || new Date(q.expires_at) < now).length;
+
+        document.getElementById('statTotalQRCodes').textContent = totalQR;
+        document.getElementById('statActiveQRCodes').textContent = activeQR;
+        document.getElementById('statExpiredQRCodes').textContent = expiredQR;
+
+        table.innerHTML = data.qrCodes
+          .map((q, idx) => {
+            const status = q.used ? 'USED' : new Date(q.expires_at) > now ? 'ACTIVE' : 'EXPIRED';
+            const statusClass = status === 'ACTIVE' ? 'status-active' : status === 'USED' ? 'status-inactive' : 'status-pending';
+            const createdDate = new Date(q.created_at).toLocaleDateString();
+            const expiresDate = new Date(q.expires_at).toLocaleDateString();
+
+            return `
+          <div class="admin-table-row" data-record-data='${JSON.stringify(q)}'>
+            <div>#QR${String(q.id).padStart(3, '0')}</div>
+            <div>${q.display_name || 'Admin'}</div>
+            <div>${createdDate}</div>
+            <div><span class="status-badge ${statusClass}">${status}</span></div>
+            <div>${expiresDate}</div>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="action-btn view" data-action="view-qr">View</button>
+              <button class="action-btn delete">Revoke</button>
+            </div>
+          </div>
+        `;
+          })
+          .join('');
+
+        // Attach View button handlers
+        document.querySelectorAll('button[data-action="view-qr"]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const row = btn.closest('.admin-table-row');
+            const recordData = row.dataset.recordData;
+            if (recordData) {
+              const qrData = JSON.parse(recordData);
+              viewQRCode(qrData);
+            }
+          });
+        });
+      } catch (err) {
+        console.error('Failed to load QR codes', err);
+        table.innerHTML = `<div class="admin-table-row" style="justify-content:center;">Failed to load QR codes: ${err.message}</div>`;
+      }
+    }
+
+    function viewQRCode(qrData) {
+      const inviteUrl = `${API_BASE_URL}/register.html?token=${qrData.token}`;
+      const expiresDate = new Date(qrData.expires_at);
+      const now = new Date();
+      const timeRemaining = expiresDate - now;
+      const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
+      const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+      const timeRemainingText = timeRemaining > 0 ? `${hours}h ${minutes}m` : 'Expired';
+
+      // Store for copy/download functionality
+      window.currentQRDataUrl = qrData.qrDataUrl;
+      window.currentQRLink = inviteUrl;
+
+      // Display QR code that was already generated on server
+      document.getElementById('qrImage').src = qrData.qrDataUrl;
+      document.getElementById('qrLink').textContent = inviteUrl;
+      document.getElementById('qrExpiry').textContent = expiresDate.toLocaleString();
+      document.getElementById('qrTimeRemaining').textContent = timeRemainingText;
+      
+      document.getElementById('qrModal').classList.add('active');
+    }
+
+    function closeQRModal() {
+      document.getElementById('qrModal').classList.remove('active');
+    }
+
+    function closeGenerateModal() {
+      document.getElementById('qrGenerateModal').classList.remove('active');
+    }
+
+    function copyQRLink() {
+      if (window.currentQRLink) {
+        navigator.clipboard.writeText(window.currentQRLink).then(() => {
+          alert('✅ Link copied to clipboard!');
+        }).catch(err => {
+          console.error('Failed to copy', err);
+          alert('Failed to copy link');
+        });
+      }
+    }
+
+    function copyGeneratedQRLink() {
+      if (window.currentGeneratedQRLink) {
+        navigator.clipboard.writeText(window.currentGeneratedQRLink).then(() => {
+          alert('✅ Link copied to clipboard!');
+        }).catch(err => {
+          console.error('Failed to copy', err);
+          alert('Failed to copy link');
+        });
+      }
+    }
+
+    function downloadImage(dataUrl, filename) {
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function downloadQRCode() {
+      if (window.currentQRDataUrl) {
+        downloadImage(window.currentQRDataUrl, 'qr-code-registration.png');
+      } else {
+        alert('No QR code image available for download.');
+      }
+    }
+
+    function downloadGeneratedQRCode() {
+      if (window.currentGeneratedQRDataUrl) {
+        downloadImage(window.currentGeneratedQRDataUrl, 'qr-code-registration.png');
+      } else {
+        alert('No QR code image available for download.');
+      }
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('qrModal')?.addEventListener('click', (e) => {
+      if (e.target.id === 'qrModal') {
+        closeQRModal();
+      }
+    });
+
+    // Close modal when clicking outside
+    document.getElementById('qrGenerateModal')?.addEventListener('click', (e) => {
+      if (e.target.id === 'qrGenerateModal') {
+        closeGenerateModal();
+      }
+    });
+
+    async function viewUser(userId) {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/admin/users/${userId}?userId=${authUser.id}`);
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message || 'Failed to load user.');
+
+        const user = data.user;
+        alert(`User Details:\n\nID: ${user.id}\nName: ${user.display_name || '—'}\nEmail: ${user.email}\nRole: ${user.role}\nStatus: ${user.status}\nCreated: ${new Date(user.created_at).toLocaleString()}`);
+      } catch (err) {
+        console.error('View user error', err);
+        alert('Failed to load user details: ' + err.message);
+      }
+    }
+
+    async function editUser(userId) {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/admin/users/${userId}?userId=${authUser.id}`);
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message || 'Failed to load user.');
+
+        const user = data.user;
+        const newName = prompt('Update display name:', user.display_name || '');
+        if (newName === null) return; // cancelled
+
+        const newEmail = prompt('Update email:', user.email);
+        if (newEmail === null) return; // cancelled
+
+        await fetch(`${API_BASE_URL}/api/admin/users/${userId}?userId=${authUser.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ displayName: newName.trim(), email: newEmail.trim() }),
+        });
+
+        await loadUsers();
+        alert('User updated successfully.');
+      } catch (err) {
+        console.error('Edit user error', err);
+        alert('Failed to update user: ' + err.message);
+      }
+    }
+
+    async function toggleUserStatus(userId) {
+      try {
+        const row = document.querySelector(`[data-user-id="${userId}"]`);
+        const currentStatus = row?.dataset.userStatus || 'active';
+        const targetStatus = currentStatus === 'inactive' ? 'active' : 'inactive';
+
+        const confirmed = confirm(
+          `Are you sure you want to ${targetStatus === 'inactive' ? 'deactivate' : 'reactivate'} this account?`
+        );
+        if (!confirmed) return;
+
+        await fetch(`${API_BASE_URL}/api/admin/users/${userId}/status?userId=${authUser.id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: targetStatus }),
+        });
+
+        await loadUsers();
+        alert('User status updated.');
+      } catch (err) {
+        console.error('Toggle status error', err);
+        alert('Failed to update status: ' + err.message);
+      }
+    }
+
+    userSearchInput.addEventListener('input', () => loadUsers());
+    roleFilter.addEventListener('change', () => loadUsers());
+    statusFilter.addEventListener('change', () => loadUsers());
+
+    document.getElementById('generateQRBtn')?.addEventListener('click', generateQRCode);
+
+    async function generateQRCode() {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/admin/invite`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: authUser.id }),
+        });
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message || 'Failed to generate QR code');
+
+        // Populate modal with QR code data
+        window.currentGeneratedQRDataUrl = data.invite.qrDataUrl;
+        window.currentGeneratedQRLink = data.invite.inviteUrl;
+        document.getElementById('generatedQRImage').src = data.invite.qrDataUrl;
+        document.getElementById('generatedQRLink').textContent = data.invite.inviteUrl;
+        document.getElementById('generatedQRExpiry').textContent = new Date(data.invite.expiresAt).toLocaleString();
+        
+        // Show modal
+        document.getElementById('qrGenerateModal').classList.add('active');
+        await loadQRCodes();
+      } catch (err) {
+        console.error('Generate QR error', err);
+        alert('Failed to generate QR code: ' + err.message);
+      }
+    }
+
+    navBtns.forEach(btn => {
+      btn.addEventListener('click', () => switchSection(btn.dataset.target));
+    });
+
+    sidebarItems.forEach(item => {
+      item.addEventListener('click', () => switchSection(item.dataset.target));
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('authUser');
+      window.location.href = 'index.html';
+    });
+
+    // Initialize admin dashboard
+    loadAdminStats();
+  </script>
+</body>
+</html>

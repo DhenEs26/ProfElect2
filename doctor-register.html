@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doctor Registration | EMR System</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="container">
+    <header class="brand">
+      <h1>Doctor Registration</h1>
+      <p>Admin-only doctor account creation</p>
+    </header>
+    
+    <section class="card">
+      <form id="doctorRegForm">
+        <div class="field">
+          <label for="doctorEmail">Email</label>
+          <input type="email" id="doctorEmail" required>
+        </div>
+        <div class="field">
+          <label for="doctorPassword">Password</label>
+          <input type="password" id="doctorPassword" required minlength="6">
+        </div>
+        <div class="field">
+          <label for="doctorName">Full Name</label>
+          <input type="text" id="doctorName" required>
+        </div>
+        <div class="field">
+          <label for="doctorLicense">License Number</label>
+          <input type="text" id="doctorLicense" required>
+        </div>
+        <div class="field" style="display: flex; gap: 0.5rem; align-items: flex-start;">
+          <input type="checkbox" id="doctorConsent" required>
+          <label for="doctorConsent">Data Privacy Act 2012 Consent</label>
+        </div>
+        <button type="submit" class="primary">Create Doctor Account</button>
+        <p class="hint" id="doctorHint"></p>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    document.getElementById('doctorRegForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      if (!document.getElementById('doctorConsent').checked) {
+        document.getElementById('doctorHint').textContent = 'Must consent to privacy policy';
+        return;
+      }
+
+      const payload = {
+        role: 'doctor',
+        email: document.getElementById('doctorEmail').value.trim(),
+        password: document.getElementById('doctorPassword').value,
+        privacyConsent: true,
+        displayName: document.getElementById('doctorName').value.trim(),
+        license: document.getElementById('doctorLicense').value.trim()
+      };
+
+      try {
+        const response = await fetch('/api/register', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          alert('Doctor account created! Login at main page.');
+          window.location.href = 'index.html';
+        } else {
+          document.getElementById('doctorHint').textContent = data.message;
+        }
+      } catch (err) {
+        document.getElementById('doctorHint').textContent = 'Server error';
+      }
+    });
+  </script>
+</body>
+</html>

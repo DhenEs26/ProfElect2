@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EMR System | Secure Medical Records</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #f0f4f8 0%, #e3f2fd 100%);
+    }
+
+    .login-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: center;
+      margin: 2rem auto;
+      max-width: 1000px;
+    }
+
+    .login-info {
+      color: var(--text-primary);
+    }
+
+    .login-info h2 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: var(--primary);
+    }
+
+    .login-info p {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+      line-height: 1.8;
+    }
+
+    .feature-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .feature-list li {
+      padding: 0.75rem 0 0.75rem 2rem;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+      position: relative;
+      font-weight: 500;
+    }
+
+    .feature-list li:before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--success);
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+
+    .login-form {
+      background: white;
+      border-radius: 12px;
+      padding: 2.5rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--border);
+    }
+
+    .login-form h3 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 0 0 2rem 0;
+      text-align: center;
+    }
+
+    .register-links {
+      text-align: center;
+      margin: 1.5rem 0;
+    }
+
+    .register-links a {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      margin: 0 0.5rem;
+      text-decoration: none;
+      font-weight: 600;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+
+    .register-links .patient { background: #10b981; color: white; }
+    .register-links .doctor { background: #3b82f6; color: white; }
+    .register-links .staff { background: #f59e0b; color: white; }
+
+    @media (max-width: 900px) {
+      .login-container {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+
+      .login-info {
+        display: none;
+      }
+
+      .login-form {
+        max-width: 480px;
+        margin: 0 auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="login-container">
+    <div class="login-info">
+      <h2>Secure Medical Records System</h2>
+      <p>Professional Electronic Medical Records management for healthcare providers and patients.</p>
+      <ul class="feature-list">
+        <li>Secure patient data access and management</li>
+        <li>Real-time consultation scheduling</li>
+        <li>Advanced OCR ID scanning technology</li>
+        <li>Comprehensive health assessments</li>
+        <li>HIPAA compliant security</li>
+      </ul>
+    </div>
+
+    <div class="login-form">
+      <h3>🏥 EMR System Login</h3>
+
+      <form id="authForm" class="form" novalidate>
+        <div class="field">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" required placeholder="your@email.com" />
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required minlength="6" placeholder="••••••••" />
+        </div>
+
+        <button type="submit" class="primary" style="width: 100%; margin-top: 1rem;">Login</button>
+
+        <p class="hint" id="formHint" style="display: none;"></p>
+      </form>
+
+      <div class="register-links">
+        <a href="register.html" class="patient">📝 Patient Register</a>
+        <a href="doctor-login.html" class="doctor">👨‍⚕️ Doctor Register</a>
+        <a href="staff-login.html" class="staff">👨‍💼 Staff Register</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    document.getElementById('authForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const formHint = document.getElementById('formHint');
+      
+      formHint.style.display = 'none';
+      
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({email, password})
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          localStorage.setItem('authUser', JSON.stringify(data.user));
+          
+          if (data.user.role === 'patient') {
+            window.location.href = 'dashboard.html';
+          } else if (data.user.role === 'doctor') {
+            window.location.href = 'doctor-dashboard.html';
+          } else if (data.user.role === 'staff') {
+            window.location.href = 'staff-dashboard.html';
+          } else {
+            window.location.href = 'admin.html';
+          }
+        } else {
+          formHint.textContent = data.message || 'Login failed';
+          formHint.style.color = '#ef4444';
+          formHint.style.display = 'block';
+        }
+      } catch (err) {
+        formHint.textContent = 'Server error. Please refresh and try again.';
+        formHint.style.color = '#ef4444';
+        formHint.style.display = 'block';
+      }
+    });
+  </script>
+
+  <footer class="footer">
+    <p><strong>Secure EMR System</strong> | All users login here</p>
+  </footer>
+</body>
+</html>
