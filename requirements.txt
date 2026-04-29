@@ -1,0 +1,30 @@
+# ProfElect2 Requirements
+
+# System
+Node.js 18 or newer
+npm
+
+# Install dependencies
+npm install
+
+# Required packages (listed in package.json)
+express
+cors
+dotenv
+bcryptjs
+form-data
+qrcode
+sharp
+sqlite3
+tesseract.js
+tesseract.js-core
+
+# Environment setup
+copy .env.example .env
+# Then edit .env to add your Roboflow API key if using OCR/ID detection
+
+# Start the backend server
+npm start
+
+# Open in browser
+http://localhost:3000

@@ -321,15 +321,15 @@ app.put('/api/profile', async (req, res) => {
 
 app.post('/api/login', async (req, res) => {
   try {
-    const { role, email, password } = req.body;
+    const { email, password } = req.body;
 
-    if (!role || !email || !password) {
-      return res.status(400).json({ success: false, message: 'role, email, and password are required.' });
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: 'Email and password are required.' });
     }
 
     const user = await db.validateCredentials(email, password);
-    if (!user || user.role !== role) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials or role.' });
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
 
     // In a real system, issue a session or token here.
