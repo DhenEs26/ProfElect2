@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EMR Patient Onboarding</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      min-height: 100vh;
+      background: #eef4f8;
+    }
+
+    .entry-shell {
+      width: min(1040px, calc(100% - 2rem));
+      margin: 2rem auto;
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 2rem;
+      align-items: stretch;
+    }
+
+    .entry-panel,
+    .qr-panel {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+      padding: 2rem;
+    }
+
+    .entry-panel {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .entry-panel h1 {
+      color: var(--primary);
+      font-size: 2.35rem;
+      line-height: 1.15;
+      margin: 0 0 1rem 0;
+    }
+
+    .entry-panel p,
+    .qr-panel p {
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin: 0 0 1.25rem 0;
+    }
+
+    .entry-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 0.75rem;
+    }
+
+    .entry-actions a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .signin-button {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 6px 14px rgba(0, 92, 184, 0.24);
+    }
+
+    .qr-panel {
+      text-align: center;
+    }
+
+    .qr-box {
+      min-height: 320px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #f8fafc;
+      margin: 1.25rem 0;
+      padding: 1rem;
+    }
+
+    .qr-box img {
+      width: min(280px, 100%);
+      height: auto;
+      display: block;
+    }
+
+    .qr-link {
+      display: block;
+      color: var(--primary);
+      font-weight: 700;
+      word-break: break-all;
+      text-decoration: none;
+    }
+
+    .qr-status {
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    @media (max-width: 820px) {
+      .entry-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .entry-panel h1 {
+        font-size: 1.9rem;
+      }
+    }
+  </style>
+  <script src="api-config.js"></script>
+</head>
+<body>
+  <main class="entry-shell">
+    <section class="entry-panel" aria-label="EMR system entry">
+      <h1>Secure EMR Patient Onboarding</h1>
+      <p>Patients can scan the QR code to open Patient Registration directly. Doctors, staff, patients, and admins sign in with accounts managed by the admin dashboard.</p>
+      <div class="entry-actions">
+        <a class="signin-button" href="login.html">Sign In</a>
+      </div>
+    </section>
+
+    <section class="qr-panel" aria-label="Patient registration QR code">
+      <h2>Patient Registration QR Code</h2>
+      <p>Scan this code to continue to Patient Registration.</p>
+      <div class="qr-box">
+        <span id="qrStatus" class="qr-status">Loading QR code...</span>
+        <img id="registrationQr" alt="Patient Registration QR code" hidden />
+      </div>
+      <a id="registrationLink" class="qr-link" href="register.html">Open Patient Registration</a>
+    </section>
+  </main>
+
+  <script>
+    function getRegistrationUrl() {
+      return new URL('register.html', window.location.href).href;
+    }
+
+    async function loadRegistrationQr() {
+      const qrImage = document.getElementById('registrationQr');
+      const qrStatus = document.getElementById('qrStatus');
+      const registrationLink = document.getElementById('registrationLink');
+      registrationLink.href = getRegistrationUrl();
+
+      try {
+        const resp = await fetch('/api/public-registration-qr');
+        const data = await resp.json();
+        if (!resp.ok || !data.success) throw new Error(data.message || 'Could not load QR code.');
+
+        qrImage.src = data.qrDataUrl;
+        qrImage.hidden = false;
+        qrStatus.hidden = true;
+      } catch (err) {
+        qrStatus.textContent = 'QR unavailable. Use the registration link below.';
+        console.error('QR load error', err);
+      }
+    }
+
+    loadRegistrationQr();
+  </script>
+
+  <footer class="footer">
+    <p><strong>Secure EMR System</strong> | Patient QR onboarding</p>
+  </footer>
+</body>
+</html>

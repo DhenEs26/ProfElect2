@@ -1,0 +1,2106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Doctor Dashboard | EMR System</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f5f7fa;
+      margin: 0;
+      padding: 0;
+      display: flex;
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 170px;
+      height: 100vh;
+      background: linear-gradient(135deg, #1a365d 0%, #2d5a8c 100%);
+      color: white;
+      padding: 1.5rem 0;
+      box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+      overflow-y: auto;
+      z-index: 100;
+    }
+
+    .sidebar-header {
+      padding: 0 1.5rem 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      margin-bottom: 1.5rem;
+    }
+
+    .sidebar-header h2 {
+      margin: 0;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding: 0 1rem;
+    }
+
+    .sidebar-nav-item {
+      padding: 0.75rem 1rem;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      color: rgba(255, 255, 255, 0.8);
+      cursor: pointer;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .sidebar-nav-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+
+    .sidebar-nav-item.active {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border-left: 4px solid #ffd700;
+    }
+
+    .sidebar-toggle {
+      display: none;
+      background: rgba(255, 255, 255, 0.18);
+      border: none;
+      color: white;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-right: 0.75rem;
+      transition: background 0.2s ease;
+    }
+
+    .sidebar-toggle:hover {
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    .sidebar-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+      z-index: 950;
+    }
+
+    body.sidebar-open .sidebar-backdrop {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* Main Wrapper */
+    .main-wrapper {
+      margin-left: 170px;
+      width: calc(100% - 170px);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .dashboard-header {
+      background: linear-gradient(135deg, #1a365d 0%, #2d5a8c 100%);
+      color: white;
+      padding: 1.5rem 2rem;
+      border-radius: 0 0 1rem 1rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .dashboard-header .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .dashboard-header .header-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+    }
+
+    .dashboard-header h1 {
+      margin: 0;
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    .dashboard-header p {
+      margin: 0.25rem 0 0 0;
+      opacity: 0.9;
+      font-size: 0.9rem;
+    }
+
+    .dashboard-header .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .search-box {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      width: 250px;
+    }
+
+    #logoutBtn {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s ease;
+    }
+
+    #logoutBtn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .search-box::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* Tab Navigation */
+    .tab-nav {
+      display: flex;
+      gap: 1rem;
+      padding: 1.5rem 2rem;
+      background: white;
+      border-bottom: 1px solid #e0e0e0;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      padding: 0.75rem 1.5rem;
+      background: white;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      font-weight: 600;
+      color: #666;
+      transition: all 0.3s ease;
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: #0066cc;
+      border-bottom-color: #0066cc;
+    }
+
+    .tab-btn.active {
+      color: #0066cc;
+      border-bottom-color: #0066cc;
+    }
+
+    /* Section visibility */
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    /* Main Content Layout */
+    .doc-layout {
+      display: flex;
+      flex: 1;
+      gap: 2rem;
+      padding: 2rem;
+    }
+
+    .doc-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .doc-sidebar {
+      width: 300px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 1024px) {
+      .sidebar-toggle {
+        display: inline-flex;
+      }
+
+      .sidebar {
+        position: fixed;
+        left: -280px;
+        top: 0;
+        height: 100vh;
+        z-index: 1000;
+        width: 220px;
+        transition: left 0.25s ease;
+      }
+
+      .sidebar.active {
+        left: 0;
+      }
+
+      .main-wrapper {
+        margin-left: 0;
+        width: 100%;
+      }
+
+      .dashboard-header {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+
+      .dashboard-header .header-left,
+      .dashboard-header .header-actions {
+        width: 100%;
+      }
+
+      .dashboard-header .header-actions {
+        justify-content: flex-end;
+      }
+    }
+
+    /* Card Styles */
+    .card {
+      background: white;
+      padding: 1.75rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .card h2,
+    .card h3 {
+      margin: 0 0 1.5rem 0;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #1a202c;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-list {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .data-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      border-left: 5px solid #0066cc;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      color: #1a202c;
+    }
+
+    .data-card:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .data-card.selected {
+      background: #e3f2fd;
+      border-left-color: #0066cc;
+    }
+
+    .data-row {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 1rem;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #f0f0f0;
+      align-items: center;
+    }
+
+    .data-row:last-child {
+      border-bottom: none;
+    }
+
+    .data-label {
+      font-weight: 700;
+      color: #666;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .data-value {
+      color: #1a202c;
+      font-weight: 500;
+    }
+
+    /* Status Badge */
+    .status-badge {
+      display: inline-block;
+      padding: 0.35rem 0.9rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .status-pending {
+      background: #fff3cd;
+      color: #b8860b;
+    }
+
+    .status-scheduled {
+      background: #d4edff;
+      color: #0066cc;
+    }
+
+    .status-completed {
+      background: #d4edda;
+      color: #1e7e34;
+    }
+
+    .status-cancelled {
+      background: #ffe5e5;
+      color: #b02a37;
+    }
+
+    .status-denied {
+      background: #f8d7da;
+      color: #c92a2a;
+    }
+
+    .status-approved {
+      background: #d4edda;
+      color: #1e7e34;
+    }
+
+    .status-under-review {
+      background: #e2e3e5;
+      color: #383d41;
+    }
+
+    /* Schedule Card */
+    .schedule-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      background: #f8f9fa;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .schedule-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: #0066cc;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .schedule-time {
+      flex: 1;
+    }
+
+    .schedule-name {
+      font-weight: 700;
+      color: #1a202c;
+      margin: 0;
+    }
+
+    .schedule-hour {
+      font-size: 0.9rem;
+      color: #0066cc;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    /* Alert Item */
+    .alert-item {
+      display: flex;
+      gap: 0.75rem;
+      padding: 1rem;
+      background: #fff8f0;
+      border-left: 4px solid #ff6b35;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+    }
+
+    .alert-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .alert-content p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #1a202c;
+    }
+
+    .alert-time {
+      font-size: 0.8rem;
+      color: #999;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .doc-layout {
+        gap: 1.5rem;
+        padding: 1.5rem;
+      }
+
+      .doc-sidebar {
+        width: 280px;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .doc-layout {
+        flex-direction: column;
+      }
+
+      .doc-sidebar {
+        width: 100%;
+      }
+
+      .search-box {
+        width: 200px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 150px;
+      }
+
+      .main-wrapper {
+        margin-left: 150px;
+        width: calc(100% - 150px);
+      }
+
+      .dashboard-header {
+        padding: 1rem;
+      }
+
+      .tab-nav {
+        padding: 1rem;
+        gap: 0.5rem;
+      }
+
+      .tab-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+      }
+
+      .doc-layout {
+        padding: 1rem;
+      }
+
+      .search-box {
+        width: 150px;
+        padding: 0.4rem 0.8rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .sidebar {
+        width: 130px;
+      }
+
+      .main-wrapper {
+        margin-left: 130px;
+        width: calc(100% - 130px);
+      }
+
+      .sidebar-nav-item {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.75rem;
+      }
+
+      .doc-layout {
+        padding: 0.75rem;
+        gap: 1rem;
+      }
+
+      .card {
+        padding: 1rem;
+      }
+
+      .search-box {
+        display: none;
+      }
+    }
+
+    /* Scrollbar */
+    .sidebar::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 3px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
+  </style>
+  <script src="api-config.js"></script>
+</head>
+<body>
+  <!-- Sidebar Navigation -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>📋 Doctor</h2>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="sidebar-nav-item active" data-target="consultations" data-filter="pending">Dashboard</button>
+      <button class="sidebar-nav-item" data-target="availability">Availability</button>
+      <button class="sidebar-nav-item" data-target="patient-records">Patient Records</button>
+      <button class="sidebar-nav-item" data-target="diagnostic-results">Diagnostic Results</button>
+      <button class="sidebar-nav-item" data-target="notifications">Notifications</button>
+      <button class="sidebar-nav-item" data-target="profile">Profile</button>
+      <button class="sidebar-nav-item" data-target="settings">Settings</button>
+    </nav>
+  </div>
+  <div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
+
+  <!-- Main Content -->
+  <div class="main-wrapper">
+    <!-- Header -->
+    <div class="dashboard-header">
+      <div class="header-left">
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle navigation menu">☰</button>
+        <div class="header-avatar">👩‍⚕️</div>
+        <div>
+          <h1>🔐 Doctor Dashboard</h1>
+          <p>Consultation and EMR Management</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <input type="text" class="search-box" id="searchPatient" placeholder="Search patient..." />
+        <button id="logoutBtn">Logout</button>
+      </div>
+    </div>
+
+    <section id="consultations" class="section active">
+      <!-- Tab Navigation -->
+      <div class="tab-nav">
+        <button class="tab-btn active" data-filter="pending">
+          <span style="color: #ff6b35;">●</span> Pending Requests
+        </button>
+        <button class="tab-btn" data-filter="scheduled">
+          <span style="color: #0066cc;">■</span> Today's Appointments
+        </button>
+        <button class="tab-btn" data-filter="completed">
+          <span style="color: #2ecc71;">✓</span> Completed
+        </button>
+        <button class="tab-btn" data-filter="available">
+          <span style="color: #2ecc71;">📅</span> Available Slots
+        </button>
+      </div>
+
+      <!-- Main Content Layout -->
+      <div class="doc-layout">
+        <!-- Main Content Area -->
+        <div class="doc-main">
+          <div class="card">
+            <h2>Patient Consultation Requests</h2>
+            <p id="consultationsDebug" style="color: #666; font-size: 0.85rem; margin: 0 0 0.75rem 0;">Loading consultations...</p>
+            <div id="consultationsList" class="card-list"></div>
+            <div id="availabilityList" class="card-list" style="display: none;"></div>
+          </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="doc-sidebar">
+          <!-- Sidebar content removed (Availability + Access Alerts) -->
+        </div>
+      </div>
+
+      <!-- Consultation Detail View -->
+      <div id="consultationDetail" class="card" style="display: none; margin-top: 2rem;">
+        <h2>Consultation Details</h2>
+        <div class="two-col">
+          <div id="consultationInfo"></div>
+          <div id="patientEMR"></div>
+        </div>
+        <div style="margin-top: 1.5rem;">
+          <h3>Manage Consultation</h3>
+          <form id="updateConsultationForm" class="form">
+            <div class="form-row">
+              <div class="field">
+                <label for="updateStatus">Status</label>
+                <select id="updateStatus" name="status">
+                  <option value="pending">Pending</option>
+                  <option value="under-review">Under Review</option>
+                  <option value="scheduled">Scheduled</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="denied">Denied</option>
+                </select>
+              </div>
+              <div id="attendanceActions" class="field" style="grid-column: 1 / -1; display: none; flex-wrap: wrap; gap: 0.75rem; align-items: center;">
+                <label style="min-width: 140px; margin: 0; font-weight: 700; color: #666; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.3px;">Attendance</label>
+                <button type="button" id="markPresentBtn" class="primary" style="background: #2ecc71; border-color: #2ecc71;">Mark Present</button>
+                <button type="button" id="markNoShowBtn" class="primary" style="background: #f86c6b; border-color: #f86c6b;">Mark No-Show</button>
+                <small style="color: #666; flex: 1 1 100%;">Use these controls once the appointment time has arrived or the patient fails to appear.</small>
+              </div>
+              <div class="field">
+                <label for="consultationDate">Consultation Date</label>
+                <input type="date" id="consultationDate" name="consultationDate" />
+              </div>
+              <div class="field">
+                <label for="consultationTimeStart">Consultation Time - Start</label>
+                <input type="time" id="consultationTimeStart" name="consultationTimeStart" />
+              </div>
+              <div class="field">
+                <label for="consultationTimeEnd">Consultation Time - End</label>
+                <input type="time" id="consultationTimeEnd" name="consultationTimeEnd" />
+              </div>
+            </div>
+            <div class="field">
+              <label for="doctorNotes">Doctor Notes & Recommendations</label>
+              <textarea id="doctorNotes" name="notes" rows="4" placeholder="Add notes, remarks, recommendations, and follow-up instructions..."></textarea>
+            </div>
+            <button type="submit" class="primary">Update Consultation</button>
+            <p id="updateHint"></p>
+          </form>
+
+          <div style="margin-top: 2rem; padding: 1.2rem; background: #f8f9fa; border-radius: 8px;">
+            <h3 style="margin-top: 0;">Upload Diagnostic Result for Consultation</h3>
+            <form id="consultationDiagnosticUploadForm" class="form">
+              <div class="form-row">
+                <div class="field">
+                  <label for="consultationUploadFile">File</label>
+                  <input type="file" id="consultationUploadFile" name="file" accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.txt" required />
+                </div>
+                <div class="field">
+                  <label for="consultationUploadDescription">Description</label>
+                  <textarea id="consultationUploadDescription" name="description" rows="3" placeholder="Describe the diagnostic result or report..."></textarea>
+                </div>
+              </div>
+              <button type="submit" class="primary">Upload Diagnostic Result</button>
+              <p id="consultationUploadHint" style="margin-top: 0.5rem;"></p>
+            </form>
+          </div>
+
+          <div style="margin-top: 2rem;">
+            <h3>Consultation Diagnostic Results</h3>
+            <p id="consultationDiagnosticDebug" style="color:#666; font-size:0.9rem; margin:0 0 0.75rem 0;">Loading consultation diagnostics...</p>
+            <div id="consultationDiagnosticResultsList" class="card-list"></div>
+          </div>
+        </div>
+        <button id="backButton" class="primary" style="margin-top: 1rem; background: rgba(100,100,100,0.2);">Back to List</button>
+      </div>
+    </section>
+
+    <!-- Set Availability Section -->
+    <section id="availability" class="section">
+      <div class="card">
+        <h2>Set Your Availability</h2>
+        <form id="availabilityForm" class="form">
+          <div class="form-row">
+            <div class="field">
+              <label for="availableDate">Available Date</label>
+              <input type="date" id="availableDate" name="availableDate" required />
+            </div>
+          </div>
+          <div class="field">
+            <label>Available Time Slots</label>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.5rem; margin-top: 0.5rem;">
+              <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="checkbox" class="time-check" value="08:00" /> 8:00 AM
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="checkbox" class="time-check" value="09:00" /> 9:00 AM
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="checkbox" class="time-check" value="10:00" /> 10:00 AM
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="checkbox" class="time-check" value="11:00" /> 11:00 AM
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="checkbox" class="time-check" value="14:00" /> 2:00 PM
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="checkbox" class="time-check" value="15:00" /> 3:00 PM
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="checkbox" class="time-check" value="16:00" /> 4:00 PM
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="checkbox" class="time-check" value="17:00" /> 5:00 PM
+              </label>
+            </div>
+          </div>
+          <button type="submit" class="primary" style="margin-top: 1rem;">Set Availability</button>
+          <p id="availabilityHint"></p>
+        </form>
+
+        <h3 style="margin-top: 2rem;">Your Current Availability</h3>
+        <div id="currentAvailability" class="card-list"></div>
+      </div>
+    </section>
+
+    <!-- Notifications Section -->
+    <section id="notifications" class="section">
+      <div class="card">
+        <h2>Notifications</h2>
+        <div id="notificationsList" class="card-list"></div>
+      </div>
+    </section>
+
+    <!-- Patient Records Section -->
+    <section id="patient-records" class="section">
+      <div class="card">
+        <h2>Patient Records</h2>
+        <p style="color:#666;">Select a patient from the consultation list to view their record.</p>
+        <p id="patientRecordsDebug" style="color:#666; font-size:0.9rem; margin:0 0 0.75rem 0;">Loading patients...</p>
+        <div id="patientRecordsList" class="card-list"></div>
+      </div>
+    </section>
+
+    <!-- Diagnostic Results Section -->
+    <section id="diagnostic-results" class="section">
+      <div class="card">
+        <h2>📄 Diagnostic Results</h2>
+        <p style="color:#666; font-size:0.9rem; margin:0 0 1rem 0;">Upload and manage diagnostic reports, test results, and medical documents.</p>
+
+        <!-- Upload Form -->
+        <div style="margin-bottom: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 8px;">
+          <h3 style="margin-top: 0;">Upload Diagnostic Result</h3>
+          <form id="diagnosticUploadForm" class="form">
+            <div class="form-row">
+              <div class="field">
+                <label for="uploadConsultationId">Related Consultation (Optional)</label>
+                <select id="uploadConsultationId" name="consultationId">
+                  <option value="">General Upload</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="uploadFile">File</label>
+                <input type="file" id="uploadFile" name="file" accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.txt" required />
+              </div>
+            </div>
+            <div class="field">
+              <label for="uploadDescription">Description</label>
+              <textarea id="uploadDescription" name="description" rows="3" placeholder="Describe the diagnostic result, test type, or document purpose..."></textarea>
+            </div>
+            <button type="submit" class="primary">Upload File</button>
+            <p id="uploadHint" style="margin-top: 0.5rem;"></p>
+          </form>
+        </div>
+
+        <!-- Results List -->
+        <div style="margin-bottom: 1rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;">
+          <div style="flex: 1; min-width: 220px;">
+            <label for="diagnosticSearch" style="display: block; font-weight: 700; margin-bottom: 0.5rem;">Search patient</label>
+            <input id="diagnosticSearch" type="search" placeholder="Search by patient name..." style="width:100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #ccc;" />
+          </div>
+        </div>
+
+        <h3>Recent Diagnostic Results</h3>
+        <p id="diagnosticDebug" style="color:#666; font-size:0.9rem; margin:0 0 0.75rem 0;">Loading diagnostic results...</p>
+        <div id="diagnosticResultsList" class="card-list"></div>
+      </div>
+    </section>
+
+    <!-- Profile Section -->
+    <section id="profile" class="section">
+      <div class="card">
+        <h2>Doctor Profile</h2>
+        <form id="doctorProfileForm" class="form">
+          <div class="field">
+            <label for="doctorName">Full Name</label>
+            <input type="text" id="doctorName" name="display_name" required />
+          </div>
+          <div class="field">
+            <label for="doctorEmail">Email (Read-only)</label>
+            <input type="email" id="doctorEmail" readonly />
+          </div>
+          <div class="field">
+            <label for="doctorLicense">License Number</label>
+            <input type="text" id="doctorLicense" name="license_number" required />
+          </div>
+          <div class="field">
+            <label for="totalConsultations">Total Consultations</label>
+            <input type="number" id="totalConsultations" readonly />
+          </div>
+          <button type="submit" class="primary">Update Profile</button>
+          <p id="profileHint"></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- Settings Section -->
+    <section id="settings" class="section">
+      <div class="card">
+        <h2>Settings</h2>
+        <p style="color:#666;">Settings will appear here.</p>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>EMR Doctor Management System • Patient Care & Records</p>
+    </footer>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <script>
+    const API_BASE_URL = window.PROFELECT_API_BASE_URL;
+    const authUser = JSON.parse(localStorage.getItem('authUser') || 'null');
+
+    if (!authUser || !authUser.id || authUser.role !== 'doctor') {
+      alert('Access denied. Please log in as a doctor.');
+      window.location.href = 'login.html';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const sidebarBtns = document.querySelectorAll('.sidebar-nav-item');
+      const sections = document.querySelectorAll('.section');
+      const logoutBtn = document.getElementById('logoutBtn');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+    const sidebarElement = document.querySelector('.sidebar');
+    const searchInput = document.getElementById('searchPatient');
+
+    function closeSidebar() {
+      sidebarElement?.classList.remove('active');
+      document.body.classList.remove('sidebar-open');
+    }
+
+    function toggleSidebar() {
+      sidebarElement?.classList.toggle('active');
+      document.body.classList.toggle('sidebar-open');
+    }
+
+    sidebarToggle?.addEventListener('click', toggleSidebar);
+    sidebarBackdrop?.addEventListener('click', closeSidebar);
+    let searchQuery = '';
+
+    let selectedConsultationId = null;
+    let selectedConsultationPatientId = null;
+    let consultationsData = [];
+    let availabilityData = [];
+    let diagnosticResultsCache = [];
+    function setFilter(filter) {
+      currentFilter = filter;
+      tabBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.filter === filter));
+      renderConsultationsList();
+    }
+
+    function switchSection(target, filter) {
+      sidebarBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.target === target));
+      sections.forEach(sec => sec.classList.toggle('active', sec.id === target));
+
+      if (target === 'consultations' && filter) {
+        setFilter(filter);
+      }
+    }
+
+    sidebarBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.target;
+        const filter = btn.dataset.filter;
+        switchSection(target, filter);
+        closeSidebar();
+      });
+    });
+
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        setFilter(btn.dataset.filter);
+      });
+    });
+
+    searchInput.addEventListener('input', () => {
+      searchQuery = searchInput.value.trim().toLowerCase();
+
+      // When the search box is empty, show all patients (no filtering)
+      if (!searchQuery) {
+        switchSection('patient-records');
+        renderPatientList();
+        return;
+      }
+
+      // Otherwise, filter patients based on search
+      const filtered = allPatients.filter(p => {
+        const fullName = `${p.first_name} ${p.last_name}`.toLowerCase();
+        return fullName.includes(searchQuery);
+      });
+
+      const container = document.getElementById('patientRecordsList');
+      if (filtered.length === 0) {
+        container.innerHTML = '<p style="color: var(--muted);">No patients found matching "' + searchQuery + '".</p>';
+      } else {
+        container.innerHTML = filtered.map(p => `
+          <div class="data-card" onclick="selectPatientForRecords(${p.user_id})" style="cursor: pointer;">
+            <div class="data-row">
+              <div class="data-label">Name</div>
+              <div class="data-value">${p.first_name} ${p.middle_name || ''} ${p.last_name}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Email</div>
+              <div class="data-value">${p.email}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Mobile</div>
+              <div class="data-value">${p.mobile}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Consultations</div>
+              <div class="data-value">${p.total_consultations || 0}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      switchSection('patient-records');
+    });
+
+    const diagnosticSearchInput = document.getElementById('diagnosticSearch');
+    if (diagnosticSearchInput) {
+      diagnosticSearchInput.addEventListener('input', () => {
+        renderDiagnosticResults(diagnosticResultsCache, diagnosticSearchInput.value.trim());
+      });
+    }
+
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('authUser');
+      window.location.href = 'login.html';
+    });
+
+    // ============ CONSULTATIONS ============
+
+    async function loadConsultations() {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/doctor/consultations?userId=${authUser.id}`);
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+
+        consultationsData = data.consultations || [];
+        document.getElementById('consultationsDebug').textContent = `Loaded ${consultationsData.length} consultations.`;
+        renderConsultationsList();
+      } catch (err) {
+        document.getElementById('consultationsList').innerHTML = `<p style="color: var(--danger);">Error loading consultations: ${err.message}</p>`;
+      }
+    }
+
+    function renderAvailabilityList() {
+      const container = document.getElementById('availabilityList');
+      if (!availabilityData || availabilityData.length === 0) {
+        container.innerHTML = '<p style="color: var(--muted);">No availability slots set.</p>';
+        return;
+      }
+
+      container.innerHTML = availabilityData.map((a) => {
+        const slots = (a.available_time_slots && typeof a.available_time_slots === 'string')
+          ? JSON.parse(a.available_time_slots)
+          : a.available_time_slots || [];
+
+        return `
+          <div class="data-card">
+            <div class="data-row">
+              <div class="data-label">Date</div>
+              <div class="data-value">${a.available_date}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Time Slots</div>
+              <div class="data-value">${slots.length ? slots.join(', ') : 'None'}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+
+    function renderConsultationsList() {
+      const listEl = document.getElementById('consultationsList');
+      const availabilityEl = document.getElementById('availabilityList');
+      const detailEl = document.getElementById('consultationDetail');
+
+      // Ensure list view is shown (detail view hides it)
+      detailEl.style.display = 'none';
+
+      if (currentFilter === 'available') {
+        listEl.style.display = 'none';
+        availabilityEl.style.display = '';
+        renderAvailabilityList();
+        return;
+      }
+
+      listEl.style.display = '';
+      availabilityEl.style.display = 'none';
+
+      const now = new Date();
+      const today = now.toISOString().slice(0, 10);
+
+      const searchTerm = searchQuery;
+      const filteredBySearch = searchTerm
+        ? consultationsData.filter(c => {
+            const fullName = `${c.first_name} ${c.last_name}`.toLowerCase();
+            return fullName.includes(searchTerm);
+          })
+        : consultationsData;
+
+      document.getElementById('consultationsDebug').textContent = `Showing ${filteredBySearch.length} matching consultations (filter: ${currentFilter}${searchTerm ? `, search: "${searchTerm}"` : ''}).`;
+
+      const filtered = filteredBySearch.filter((c) => {
+        // If searching, show all matching results regardless of status
+        if (searchTerm) {
+          return true;
+        }
+        // Otherwise filter by status
+        if (currentFilter === 'scheduled') {
+          return c.consultation_date === today || c.status === 'scheduled';
+        }
+        if (currentFilter === 'completed') {
+          return ['completed', 'cancelled'].includes(c.status);
+        }
+        return c.status === currentFilter;
+      });
+
+      const html = filtered.length === 0 ?
+        '<p style="color: var(--muted);">No consultations available.</p>' :
+        filtered.map(c => `
+          <div class="data-card" onclick="selectConsultation(${c.id})">
+            <div class="data-row">
+              <div class="data-label">Patient</div>
+              <div class="data-value">${c.first_name} ${c.last_name}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Status</div>
+              <div><span class="status-badge status-${c.status}">${c.status.toUpperCase()}</span></div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Concerns</div>
+              <div class="data-value" style="white-space: pre-wrap; word-break: break-word;">${c.concerns.substring(0, 100)}${c.concerns.length > 100 ? '...' : ''}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Submitted</div>
+              <div class="data-value" style="font-size: 0.9rem;">${new Date(c.created_at).toLocaleString()}</div>
+            </div>
+          </div>
+        `).join('');
+
+      listEl.innerHTML = html;
+    }
+
+
+    async function selectConsultation(consultationId) {
+      selectedConsultationId = consultationId;
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/doctor/consultation/${consultationId}?userId=${authUser.id}`);
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+
+        const c = data.consultation;
+        const assessment = c.assessment || {};
+
+        function formatAssessment(assessmentData) {
+          if (!assessmentData || Object.keys(assessmentData).length === 0) {
+            return '<p style="color: var(--muted);">No assessment data available.</p>';
+          }
+
+          const cpAbeIndicator = `
+            <div style="
+              background: linear-gradient(135deg, #e8f4f8 0%, #d4e9f2 100%);
+              border: 2px solid #0088cc;
+              border-radius: 8px;
+              padding: 12px 16px;
+              margin-bottom: 16px;
+              display: flex;
+              align-items: center;
+              gap: 12px;
+            ">
+              <span style="font-size: 20px;">🔐</span>
+              <div>
+                <strong style="color: #004a99;">CP-ABE Encrypted Assessment</strong>
+                <br/>
+                <small style="color: #0066cc;">You have doctor access to decrypt this patient data</small>
+              </div>
+            </div>
+          `;
+
+          const labels = {
+            symptoms: 'Symptoms',
+            urgent: 'Urgent',
+            healthStatus: 'Health Status',
+            hospitalized: 'Hospitalized',
+            surgery: 'Surgery',
+            highBloodPressure: 'High Blood Pressure',
+            diabetes: 'Diabetes',
+            asthma: 'Asthma / Lung Condition',
+            heartDisease: 'Heart Disease',
+            kidneyDisease: 'Kidney Disease',
+            liverDisease: 'Liver Disease',
+            tuberculosis: 'Tuberculosis',
+            cancer: 'Cancer',
+            mentalHealth: 'Mental Health Condition',
+            otherConditions: 'Other Conditions',
+            medications: 'Currently Taking Medications',
+            maintenanceMedications: 'Maintenance Medications',
+            medicineAllergy: 'Medicine Allergy',
+            foodAllergy: 'Food Allergy',
+            familyHighBloodPressure: 'Family History: High Blood Pressure',
+            familyDiabetes: 'Family History: Diabetes',
+            familyHeartDisease: 'Family History: Heart Disease',
+            familyCancer: 'Family History: Cancer',
+            familyStroke: 'Family History: Stroke',
+            smoke: 'Smoke',
+            alcohol: 'Drink Alcohol',
+            vape: 'Use Vape / E-cigarettes',
+            drugs: 'Use Recreational Drugs',
+            exercise: 'Exercise Regularly',
+            feverCough: 'Recent Fever/Cough/Colds',
+            difficultyBreathing: 'Difficulty Breathing',
+            diarrheaVomiting: 'Diarrhea / Vomiting',
+            exposedIllness: 'Exposed to Contagious Illness',
+            pregnant: 'Pregnant',
+            breastfeeding: 'Breastfeeding',
+          };
+
+          const rows = Object.keys(assessmentData).map((key) => {
+            const label = labels[key] || key;
+            const value = assessmentData[key];
+            return `
+              <div class="data-row">
+                <div class="data-label">${label}</div>
+                <div class="data-value">${value === true ? 'Yes' : value === false ? 'No' : value || '—'}</div>
+              </div>
+            `;
+          });
+
+          return `${cpAbeIndicator}<div style="max-height: 400px; overflow-y: auto;">${rows.join('')}</div>`;
+        }
+
+        document.getElementById('consultationInfo').innerHTML = `
+          <div>
+            <h3 style="margin-top: 0;">Patient Information</h3>
+            <div class="data-row">
+              <div class="data-label">Name</div>
+              <div class="data-value">${c.first_name} ${c.middle_name || ''} ${c.last_name}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Email</div>
+              <div class="data-value">${c.email}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Mobile</div>
+              <div class="data-value">${c.mobile}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">DOB</div>
+              <div class="data-value">${c.date_of_birth}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Age</div>
+              <div class="data-value">${c.age}</div>
+            </div>
+            <h3 style="margin-top: 1.5rem;">Consultation Details</h3>
+            <div class="data-row">
+              <div class="data-label">Concerns</div>
+              <div class="data-value" style="white-space: pre-wrap; word-break: break-word;">${c.concerns}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Status</div>
+              <div><span class="status-badge status-${c.status}">${c.status.toUpperCase()}</span></div>
+            </div>
+            ${c.consultation_date ? `<div class="data-row">
+              <div class="data-label">Scheduled</div>
+              <div class="data-value">${c.consultation_date} at ${c.consultation_time}${c.consultation_time_end ? ` - ${c.consultation_time_end}` : ''}</div>
+            </div>` : ''}
+          </div>
+        `;
+
+        document.getElementById('patientEMR').innerHTML = `
+          <div>
+            <h3 style="margin-top: 0;">Health Assessment Summary</h3>
+            ${formatAssessment(assessment)}
+          </div>
+        `;
+
+        document.getElementById('updateStatus').value = c.status || 'pending';
+        document.getElementById('consultationDate').value = c.consultation_date || '';
+        document.getElementById('consultationTimeStart').value = c.consultation_time || '';
+        document.getElementById('consultationTimeEnd').value = c.consultation_time_end || '';
+        document.getElementById('doctorNotes').value = c.notes || '';
+
+        setAttendanceControls(c.status === 'scheduled');
+        selectedConsultationPatientId = c.patient_id;
+        await loadConsultationDiagnostics(consultationId);
+
+        document.getElementById('consultationsList').style.display = 'none';
+        document.getElementById('consultationDetail').style.display = 'block';
+      } catch (err) {
+        alert('Error loading consultation details: ' + err.message);
+      }
+    }
+
+    window.selectConsultation = selectConsultation;
+
+    async function loadConsultationDiagnostics(consultationId) {
+      try {
+        const resp = await fetch(`${API_BASE_URL || ''}/api/diagnostic-results/consultation/${consultationId}?userId=${authUser.id}`);
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+
+        const results = data.results || [];
+        const debugEl = document.getElementById('consultationDiagnosticDebug');
+        if (debugEl) {
+          debugEl.textContent = `Loaded ${results.length} diagnostic results for this consultation.`;
+        }
+
+        const container = document.getElementById('consultationDiagnosticResultsList');
+        if (!container) return;
+
+        if (results.length === 0) {
+          container.innerHTML = '<p style="color: var(--muted);">No diagnostics uploaded for this consultation.</p>';
+          return;
+        }
+
+        container.innerHTML = results.map(r => `
+          <div class="data-card">
+            <div class="data-row">
+              <div class="data-label">File</div>
+              <div class="data-value">
+                <a href="${API_BASE_URL}/api/diagnostic-results/download/${r.id}?userId=${authUser.id}" target="_blank" style="color: #0066cc; text-decoration: none;">
+                  📎 ${r.file_name}
+                </a>
+                <small style="display: block; color: #666; margin-top: 0.25rem;">
+                  ${(r.file_size / 1024).toFixed(1)} KB • ${r.file_type}
+                </small>
+              </div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Uploaded By</div>
+              <div class="data-value">${r.uploaded_by_name} (${r.uploader_role})</div>
+            </div>
+            ${r.description ? `<div class="data-row">
+              <div class="data-label">Description</div>
+              <div class="data-value">${r.description}</div>
+            </div>` : ''}
+          </div>
+        `).join('');
+      } catch (err) {
+        const container = document.getElementById('consultationDiagnosticResultsList');
+        if (container) {
+          container.innerHTML = `<p style="color: var(--danger);">Error loading consultation diagnostics: ${err.message}</p>`;
+        }
+      }
+    }
+
+    document.getElementById('consultationDiagnosticUploadForm')?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const fileInput = document.getElementById('consultationUploadFile');
+      const hintEl = document.getElementById('consultationUploadHint');
+
+      if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        if (hintEl) {
+          hintEl.textContent = 'Please select a file to upload.';
+          hintEl.style.color = 'var(--danger)';
+        }
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('userId', authUser.id);
+      formData.append('consultationId', selectedConsultationId);
+      formData.append('description', document.getElementById('consultationUploadDescription').value);
+      formData.append('file', fileInput.files[0]);
+
+      try {
+        const resp = await fetch(`${API_BASE_URL || ''}/api/diagnostic-results/upload`, {
+          method: 'POST',
+          body: formData
+        });
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+
+        if (hintEl) {
+          hintEl.textContent = '✓ Diagnostic result uploaded successfully.';
+          hintEl.style.color = 'var(--success)';
+        }
+        event.target.reset();
+        await loadConsultationDiagnostics(selectedConsultationId);
+      } catch (err) {
+        if (hintEl) {
+          hintEl.textContent = `❌ ${err.message}`;
+          hintEl.style.color = 'var(--danger)';
+        }
+      }
+    });
+
+    document.getElementById('backButton').addEventListener('click', () => {
+      selectedConsultationId = null;
+      document.getElementById('consultationsList').style.display = 'block';
+      document.getElementById('consultationDetail').style.display = 'none';
+      loadConsultations();
+    });
+
+    document.getElementById('updateConsultationForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!selectedConsultationId) return;
+
+      const updates = {
+        status: document.getElementById('updateStatus').value,
+        consultationDate: document.getElementById('consultationDate').value,
+        consultationTime: document.getElementById('consultationTimeStart').value,
+        consultationTimeEnd: document.getElementById('consultationTimeEnd').value,
+        notes: document.getElementById('doctorNotes').value,
+      };
+
+      await saveConsultationUpdates(updates);
+    });
+
+    async function updateConsultationStatus(status) {
+      if (!selectedConsultationId) return;
+      await saveConsultationUpdates({ status });
+    }
+
+    function setAttendanceControls(isScheduled) {
+      const attendanceSection = document.getElementById('attendanceActions');
+      const attendanceOptions = document.querySelectorAll('.attendance-status-option');
+      const statusSelect = document.getElementById('updateStatus');
+      const selectedValue = statusSelect?.value;
+      if (!attendanceSection || !attendanceOptions || !statusSelect) return;
+
+      attendanceSection.style.display = isScheduled ? 'flex' : 'none';
+      attendanceOptions.forEach(opt => {
+        const maintainVisible = !isScheduled && opt.value === selectedValue;
+        opt.hidden = !isScheduled && !maintainVisible;
+        opt.disabled = !isScheduled && !maintainVisible;
+      });
+
+      if (!isScheduled && ['completed', 'cancelled'].includes(selectedValue)) {
+        statusSelect.value = selectedValue;
+      }
+    }
+
+    async function saveConsultationUpdates(updates) {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/doctor/consultation/${selectedConsultationId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: authUser.id, ...updates }),
+        });
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+        document.getElementById('updateHint').textContent = '✓ Consultation updated successfully.';
+        document.getElementById('updateHint').style.color = 'var(--success)';
+        await loadConsultations();
+        await selectConsultation(selectedConsultationId);
+      } catch (err) {
+        document.getElementById('updateHint').textContent = `❌ ${err.message}`;
+        document.getElementById('updateHint').style.color = 'var(--danger)';
+      }
+    }
+
+    document.getElementById('markPresentBtn').addEventListener('click', () => updateConsultationStatus('completed'));
+    document.getElementById('markNoShowBtn').addEventListener('click', () => updateConsultationStatus('cancelled'));
+
+    // ============ AVAILABILITY ============
+
+    document.getElementById('availabilityForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const availableDate = document.getElementById('availableDate').value;
+      const timeSlots = Array.from(document.querySelectorAll('.time-check:checked')).map(cb => cb.value);
+
+      if (!availableDate || timeSlots.length === 0) {
+        alert('Please select a date and at least one time slot.');
+        return;
+      }
+
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/doctor/availability`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: authUser.id, availableDate, timeSlots }),
+        });
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+        document.getElementById('availabilityHint').textContent = '✓ Availability set successfully.';
+        document.getElementById('availabilityHint').style.color = 'var(--success)';
+        document.getElementById('availabilityForm').reset();
+        loadMyAvailability();
+      } catch (err) {
+        document.getElementById('availabilityHint').textContent = `❌ ${err.message}`;
+        document.getElementById('availabilityHint').style.color = 'var(--danger)';
+      }
+    });
+
+    async function loadMyAvailability() {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/doctor/my-availability?userId=${authUser.id}`);
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+
+        availabilityData = data.availability || [];
+        renderAvailabilityList();
+
+        const list = document.getElementById('currentAvailability');
+        if (!availabilityData || availabilityData.length === 0) {
+          list.innerHTML = '<p style="color: var(--muted);">No availability set yet.</p>';
+          return;
+        }
+
+        list.innerHTML = availabilityData.map(a => `
+          <div class="data-card">
+            <div class="data-row">
+              <div class="data-label">Date</div>
+              <div class="data-value">${a.available_date}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Time Slots</div>
+              <div class="time-slots">
+                ${JSON.parse(a.available_time_slots).map(t => `<div class="time-slot">${t}</div>`).join('')}
+              </div>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        document.getElementById('currentAvailability').innerHTML = `<p style="color: var(--danger);">Error: ${err.message}</p>`;
+      }
+    }
+
+    // ============ NOTIFICATIONS ============
+
+    async function loadNotifications() {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/notifications?userId=${authUser.id}`);
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+
+        const list = document.getElementById('notificationsList');
+        if (!data.notifications || data.notifications.length === 0) {
+          list.innerHTML = '<p style="color: var(--muted);">No notifications.</p>';
+          return;
+        }
+
+        list.innerHTML = data.notifications.map(n => `
+          <div class="data-card" style="opacity: ${n.read ? '0.6' : '1'};">
+            <p style="margin: 0 0 0.5rem 0;">${n.message}</p>
+            <p style="margin: 0; font-size: 0.85rem; color: var(--muted);">${new Date(n.created_at).toLocaleString()}</p>
+          </div>
+        `).join('');
+      } catch (err) {
+        document.getElementById('notificationsList').innerHTML = `<p style="color: var(--danger);">Error: ${err.message}</p>`;
+      }
+    }
+
+    // ============ PATIENT RECORDS ============
+
+    let allPatients = [];
+    let selectedPatientId = null;
+
+    async function loadAllPatients() {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/doctor/patients?doctorId=${authUser.id}`);
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+
+        allPatients = data.patients || [];
+        document.getElementById('patientRecordsDebug').textContent = `Loaded ${allPatients.length} patients.`;
+        renderPatientList();
+      } catch (err) {
+        document.getElementById('patientRecordsList').innerHTML = `<p style="color: var(--danger);">Error loading patients: ${err.message}</p>`;
+      }
+    }
+
+    function renderPatientList() {
+      const container = document.getElementById('patientRecordsList');
+      if (!allPatients || allPatients.length === 0) {
+        container.innerHTML = '<p style="color: var(--muted);">No patients found.</p>';
+        return;
+      }
+
+      const html = allPatients.map(p => `
+        <div class="data-card" onclick="selectPatientForRecords(${p.user_id})" style="cursor: pointer;">
+          <div class="data-row">
+            <div class="data-label">Name</div>
+            <div class="data-value">${p.first_name} ${p.middle_name || ''} ${p.last_name}</div>
+          </div>
+          <div class="data-row">
+            <div class="data-label">Email</div>
+            <div class="data-value">${p.email}</div>
+          </div>
+          <div class="data-row">
+            <div class="data-label">Mobile</div>
+            <div class="data-value">${p.mobile}</div>
+          </div>
+          <div class="data-row">
+            <div class="data-label">Consultations</div>
+            <div class="data-value">${p.total_consultations || 0}</div>
+          </div>
+        </div>
+      `).join('');
+
+      container.innerHTML = html;
+    }
+
+    async function selectPatientForRecords(patientUserId) {
+      selectedPatientId = patientUserId;
+      try {
+        // Fetch complete patient EMR with assessment
+        const emrResp = await fetch(`${API_BASE_URL}/api/doctor/patient/${patientUserId}?doctorId=${authUser.id}`);
+        const emrData = await emrResp.json();
+        if (!emrData.success) throw new Error(emrData.message);
+
+        // Fetch all consultations for this patient
+        const consResp = await fetch(`${API_BASE_URL}/api/doctor/patient/${patientUserId}/consultations?doctorId=${authUser.id}`);
+        const consData = await consResp.json();
+        if (!consData.success) throw new Error(consData.message);
+
+        const patient = emrData.emr;
+        const consultations = consData.consultations || [];
+        const assessment = patient.assessment_json ? JSON.parse(patient.assessment_json) : {};
+
+        // Format assessment data
+        function formatAssessment(assessmentData) {
+          if (!assessmentData || Object.keys(assessmentData).length === 0) {
+            return '<p style="color: var(--muted);">No assessment data available.</p>';
+          }
+
+          const cpAbeIndicator = `
+            <div style="
+              background: linear-gradient(135deg, #e8f4f8 0%, #d4e9f2 100%);
+              border: 2px solid #0088cc;
+              border-radius: 8px;
+              padding: 12px 16px;
+              margin-bottom: 16px;
+              display: flex;
+              align-items: center;
+              gap: 12px;
+            ">
+              <span style="font-size: 20px;">🔐</span>
+              <div>
+                <strong style="color: #004a99;">CP-ABE Encrypted Assessment</strong>
+                <br/>
+                <small style="color: #0066cc;">You have doctor access to decrypt this patient data</small>
+              </div>
+            </div>
+          `;
+
+          const labels = {
+            symptoms: 'Symptoms',
+            urgent: 'Urgent',
+            healthStatus: 'Health Status',
+            hospitalized: 'Hospitalized',
+            surgery: 'Surgery',
+            highBloodPressure: 'High Blood Pressure',
+            diabetes: 'Diabetes',
+            asthma: 'Asthma / Lung Condition',
+            heartDisease: 'Heart Disease',
+            kidneyDisease: 'Kidney Disease',
+            liverDisease: 'Liver Disease',
+            tuberculosis: 'Tuberculosis',
+            cancer: 'Cancer',
+            mentalHealth: 'Mental Health Condition',
+            otherConditions: 'Other Conditions',
+            medications: 'Currently Taking Medications',
+            maintenanceMedications: 'Maintenance Medications',
+            medicineAllergy: 'Medicine Allergy',
+            foodAllergy: 'Food Allergy',
+            familyHighBloodPressure: 'Family History: High Blood Pressure',
+            familyDiabetes: 'Family History: Diabetes',
+            familyHeartDisease: 'Family History: Heart Disease',
+            familyCancer: 'Family History: Cancer',
+            familyStroke: 'Family History: Stroke',
+            smoke: 'Smoke',
+            alcohol: 'Drink Alcohol',
+            vape: 'Use Vape / E-cigarettes',
+            drugs: 'Use Recreational Drugs',
+            exercise: 'Exercise Regularly',
+            feverCough: 'Recent Fever/Cough/Colds',
+            difficultyBreathing: 'Difficulty Breathing',
+            diarrheaVomiting: 'Diarrhea / Vomiting',
+            exposedIllness: 'Exposed to Contagious Illness',
+            pregnant: 'Pregnant',
+            breastfeeding: 'Breastfeeding',
+          };
+
+          const rows = Object.keys(assessmentData).map((key) => {
+            const label = labels[key] || key;
+            const value = assessmentData[key];
+            return `
+              <div class="data-row">
+                <div class="data-label">${label}</div>
+                <div class="data-value">${value === true ? 'Yes' : value === false ? 'No' : value || '—'}</div>
+              </div>
+            `;
+          });
+
+          return `${cpAbeIndicator}<div style="max-height: 400px; overflow-y: auto;">${rows.join('')}</div>`;
+        }
+
+        // Display patient details and consultations
+        document.getElementById('patientRecordsList').innerHTML = `
+          <div>
+            <h3>Patient Information</h3>
+            <div class="data-row">
+              <div class="data-label">Name</div>
+              <div class="data-value">${patient.first_name} ${patient.middle_name || ''} ${patient.last_name}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Email</div>
+              <div class="data-value">${patient.email}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Mobile</div>
+              <div class="data-value">${patient.mobile}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">DOB</div>
+              <div class="data-value">${patient.date_of_birth}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Age</div>
+              <div class="data-value">${patient.age}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Sex</div>
+              <div class="data-value">${patient.sex}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Address</div>
+              <div class="data-value">${patient.address}</div>
+            </div>
+
+            <h3 style="margin-top: 2rem;">Health Assessment Summary</h3>
+            ${formatAssessment(assessment)}
+
+            <h3 style="margin-top: 2rem;">Consultation History</h3>
+            ${consultations.length === 0 ? 
+              '<p style="color: var(--muted);">No consultations yet.</p>' :
+              consultations.map(c => `
+                <div class="data-card">
+                  <div class="data-row">
+                    <div class="data-label">Date & Time</div>
+                    <div class="data-value">${c.consultation_date || 'Not scheduled'} ${c.consultation_time ? 'at ' + c.consultation_time : ''}</div>
+                  </div>
+                  <div class="data-row">
+                    <div class="data-label">Status</div>
+                    <div><span class="status-badge status-${c.status}">${c.status.toUpperCase()}</span></div>
+                  </div>
+                  <div class="data-row">
+                    <div class="data-label">Concerns/Reason</div>
+                    <div class="data-value" style="white-space: pre-wrap; word-break: break-word;">${c.concerns}</div>
+                  </div>
+                  ${c.notes ? `<div class="data-row">
+                    <div class="data-label">Doctor Notes</div>
+                    <div class="data-value" style="white-space: pre-wrap; word-break: break-word;">${c.notes}</div>
+                  </div>` : ''}
+                </div>
+              `).join('')
+            }
+
+            <h3 style="margin-top: 2rem;">Upload Diagnostic Result</h3>
+            <div style="margin-bottom: 2rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+              <form id="patientDiagnosticUploadForm" class="form">
+                <div class="form-row">
+                  <div class="field">
+                    <label for="patientUploadConsultationId">Related Consultation (Optional)</label>
+                    <select id="patientUploadConsultationId" name="consultationId">
+                      <option value="">General Upload</option>
+                      ${consultations.map(c => `<option value="${c.id}">${c.consultation_date || 'No date'} — ${c.concerns.substring(0, 50)}${c.concerns.length > 50 ? '...' : ''}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="patientUploadFile">File</label>
+                    <input type="file" id="patientUploadFile" name="file" accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.txt" required />
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="patientUploadDescription">Description</label>
+                  <textarea id="patientUploadDescription" name="description" rows="3" placeholder="Describe the diagnostic result, test type, or document purpose..."></textarea>
+                </div>
+                <button type="submit" class="primary">Upload for Patient</button>
+                <p id="patientUploadHint" style="margin-top: 0.5rem;"></p>
+              </form>
+            </div>
+
+            <h3>Patient Diagnostic Results</h3>
+            <p id="patientDiagnosticDebug" style="color:#666; font-size:0.9rem; margin:0 0 0.75rem 0;">Loading diagnostic results...</p>
+            <div id="patientDiagnosticResultsList" class="card-list"></div>
+
+            <button id="backToPatientList" class="primary" style="margin-top: 2rem; background: rgba(100,100,100,0.2);">Back to Patient List</button>
+          </div>
+        `;
+
+        document.getElementById('backToPatientList').addEventListener('click', () => {
+          selectedPatientId = null;
+          renderPatientList();
+        });
+
+        const uploadForm = document.getElementById('patientDiagnosticUploadForm');
+        if (uploadForm) {
+          uploadForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const fileInput = document.getElementById('patientUploadFile');
+            const selectedConsultationId = document.getElementById('patientUploadConsultationId').value;
+            const description = document.getElementById('patientUploadDescription').value;
+            const uploadHint = document.getElementById('patientUploadHint');
+
+            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+              uploadHint.textContent = 'Please select a file to upload.';
+              uploadHint.style.color = 'var(--danger)';
+              return;
+            }
+
+            const formData = new FormData();
+            formData.append('userId', authUser.id);
+            formData.append('patientId', patientUserId);
+            if (selectedConsultationId) {
+              formData.append('consultationId', selectedConsultationId);
+            }
+            formData.append('description', description);
+            formData.append('file', fileInput.files[0]);
+
+            try {
+              const resp = await fetch(`${API_BASE_URL}/api/diagnostic-results/upload`, {
+                method: 'POST',
+                body: formData
+              });
+              const data = await resp.json();
+              if (!data.success) throw new Error(data.message);
+
+              uploadHint.textContent = '✓ Diagnostic result uploaded successfully.';
+              uploadHint.style.color = 'var(--success)';
+              uploadForm.reset();
+              await loadPatientDiagnosticResults(patientUserId);
+            } catch (err) {
+              uploadHint.textContent = `❌ ${err.message}`;
+              uploadHint.style.color = 'var(--danger)';
+            }
+          });
+        }
+
+        await loadPatientDiagnosticResults(patientUserId);
+      } catch (err) {
+        alert('Error loading patient details: ' + err.message);
+        renderPatientList();
+      }
+    }
+
+    window.selectPatientForRecords = selectPatientForRecords;
+
+    async function loadPatientDiagnosticResults(patientId) {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/diagnostic-results/patient/${patientId}?userId=${authUser.id}`);
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+
+        const results = data.results || [];
+        const debugEl = document.getElementById('patientDiagnosticDebug');
+        if (debugEl) {
+          debugEl.textContent = `Loaded ${results.length} diagnostic results for this patient.`;
+        }
+
+        const container = document.getElementById('patientDiagnosticResultsList');
+        if (!container) return;
+
+        if (results.length === 0) {
+          container.innerHTML = '<p style="color: var(--muted);">No diagnostic results uploaded for this patient.</p>';
+          return;
+        }
+
+        container.innerHTML = results.map(r => `
+          <div class="data-card">
+            <div class="data-row">
+              <div class="data-label">File</div>
+              <div class="data-value">
+                <a href="${API_BASE_URL}/api/diagnostic-results/download/${r.id}?userId=${authUser.id}" target="_blank" style="color: #0066cc; text-decoration: none;">
+                  📎 ${r.file_name}
+                </a>
+                <small style="display: block; color: #666; margin-top: 0.25rem;">
+                  ${(r.file_size / 1024).toFixed(1)} KB • ${r.file_type}
+                </small>
+              </div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Uploaded By</div>
+              <div class="data-value">${r.uploaded_by_name} (${r.uploader_role})</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Uploaded</div>
+              <div class="data-value">${new Date(r.created_at).toLocaleString()}</div>
+            </div>
+            ${r.description ? `<div class="data-row">
+              <div class="data-label">Description</div>
+              <div class="data-value">${r.description}</div>
+            </div>` : ''}
+            ${r.uploaded_by === authUser.id ? `<div class="data-row">
+              <div class="data-label">Actions</div>
+              <div class="data-value">
+                <button type="button" onclick="deletePatientDiagnosticResult(${r.id})" class="primary" style="background: #dc3545; font-size: 0.8rem; padding: 0.25rem 0.5rem;">Delete</button>
+              </div>
+            </div>` : ''}
+          </div>
+        `).join('');
+      } catch (err) {
+        const container = document.getElementById('patientDiagnosticResultsList');
+        if (container) {
+          container.innerHTML = `<p style="color: var(--danger);">Error loading diagnostic results: ${err.message}</p>`;
+        }
+      }
+    }
+
+    async function deletePatientDiagnosticResult(resultId) {
+      if (!confirm('Are you sure you want to delete this diagnostic result?')) return;
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/diagnostic-results/${resultId}?userId=${authUser.id}`, {
+          method: 'DELETE'
+        });
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+        if (selectedPatientId) {
+          await loadPatientDiagnosticResults(selectedPatientId);
+        }
+      } catch (err) {
+        alert('Error deleting diagnostic result: ' + err.message);
+      }
+    }
+
+    window.deletePatientDiagnosticResult = deletePatientDiagnosticResult;
+
+    // ============ PROFILE ============
+
+    async function loadProfile() {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/doctor/profile?userId=${authUser.id}`);
+        const data = await resp.json();
+        if (data.success && data.profile) {
+          const p = data.profile;
+          document.getElementById('doctorName').value = p.display_name || '';
+          document.getElementById('doctorEmail').value = p.email || '';
+          document.getElementById('doctorLicense').value = p.license_number || '';
+          document.getElementById('totalConsultations').value = p.total_consultations || 0;
+        }
+      } catch (err) {
+        console.error('Error loading doctor profile:', err);
+      }
+    }
+
+    document.getElementById('doctorProfileForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const updates = {
+        display_name: document.getElementById('doctorName').value.trim(),
+        license_number: document.getElementById('doctorLicense').value.trim(),
+      };
+
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/doctor/profile`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: authUser.id, updates }),
+        });
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+        document.getElementById('profileHint').textContent = '✓ Profile updated successfully.';
+        document.getElementById('profileHint').style.color = 'var(--success)';
+        loadProfile();
+      } catch (err) {
+        document.getElementById('profileHint').textContent = `❌ ${err.message}`;
+        document.getElementById('profileHint').style.color = 'var(--danger)';
+      }
+    });
+
+    // ============ DIAGNOSTIC RESULTS ============
+
+    async function loadConsultationsForUpload() {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/doctor/consultations?userId=${authUser.id}`);
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+
+        const select = document.getElementById('uploadConsultationId');
+        select.innerHTML = '<option value="">General Upload</option>';
+
+        const consultations = data.consultations || [];
+        consultations.forEach(c => {
+          const option = document.createElement('option');
+          option.value = c.id;
+          option.textContent = `${c.first_name} ${c.last_name} - ${c.concerns.substring(0, 50)}${c.concerns.length > 50 ? '...' : ''}`;
+          select.appendChild(option);
+        });
+      } catch (err) {
+        console.error('load consultations for upload error', err);
+      }
+    }
+
+    async function loadDiagnosticResults() {
+      try {
+        // For doctors, load all diagnostic results they have access to
+        const resp = await fetch(`${API_BASE_URL || ''}/api/doctor/diagnostic-results/all?userId=${authUser.id}`);
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+
+        diagnosticResultsCache = data.results || [];
+        document.getElementById('diagnosticDebug').textContent = `Loaded ${diagnosticResultsCache.length} diagnostic results.`;
+        renderDiagnosticResults(diagnosticResultsCache, document.getElementById('diagnosticSearch')?.value.trim() || '');
+      } catch (err) {
+        const container = document.getElementById('diagnosticResultsList');
+        if (container) {
+          container.innerHTML = `<p style="color: var(--danger);">Error loading diagnostic results: ${err.message}</p>`;
+        }
+      }
+    }
+
+    function renderDiagnosticResults(results, searchText = '') {
+      const container = document.getElementById('diagnosticResultsList');
+      const debugEl = document.getElementById('diagnosticDebug');
+      if (!container) return;
+
+      let filtered = results || [];
+      if (searchText) {
+        const query = searchText.toLowerCase();
+        filtered = filtered.filter(r => {
+          const patient = (r.patient_name || '').toLowerCase();
+          return patient.includes(query);
+        });
+      }
+
+      debugEl.textContent = `Showing ${filtered.length} diagnostic results${searchText ? ` for "${searchText}"` : ''}.`;
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<p style="color: var(--muted);">No diagnostic results found.</p>';
+        return;
+      }
+
+      container.innerHTML = filtered.map(r => `
+          <div class="data-card">
+            <div class="data-row">
+              <div class="data-label">File</div>
+              <div class="data-value">
+                <a href="${API_BASE_URL}/api/diagnostic-results/download/${r.id}?userId=${authUser.id}" 
+                   target="_blank" style="color: #0066cc; text-decoration: none;">
+                  📎 ${r.file_name}
+                </a>
+                <small style="display: block; color: #666; margin-top: 0.25rem;">
+                  ${(r.file_size / 1024).toFixed(1)} KB • ${r.file_type}
+                </small>
+              </div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Patient</div>
+              <div class="data-value">${r.patient_name || 'General'}</div>
+            </div>
+            <div class="data-row">
+              <div class="data-label">Uploaded</div>
+              <div class="data-value">${new Date(r.created_at).toLocaleString()}</div>
+            </div>
+            ${r.description ? `<div class="data-row">
+              <div class="data-label">Description</div>
+              <div class="data-value">${r.description}</div>
+            </div>` : ''}
+            ${r.uploaded_by === authUser.id ? `<div class="data-row">
+              <div class="data-label">Actions</div>
+              <div class="data-value">
+                <button onclick="deleteDiagnosticResult(${r.id})" class="primary" style="background: #dc3545; font-size: 0.8rem; padding: 0.25rem 0.5rem;">Delete</button>
+              </div>
+            </div>` : ''}
+          </div>
+        `).join('');
+    }
+
+    async function deleteDiagnosticResult(resultId) {
+      if (!confirm('Are you sure you want to delete this diagnostic result?')) return;
+
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/diagnostic-results/${resultId}?userId=${authUser.id}`, {
+          method: 'DELETE'
+        });
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+        await loadDiagnosticResults();
+      } catch (err) {
+        alert('Error deleting diagnostic result: ' + err.message);
+      }
+    }
+
+    window.deleteDiagnosticResult = deleteDiagnosticResult;
+
+    document.getElementById('diagnosticUploadForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const formData = new FormData();
+      formData.append('userId', authUser.id);
+      formData.append('consultationId', document.getElementById('uploadConsultationId').value);
+      formData.append('description', document.getElementById('uploadDescription').value);
+      formData.append('file', document.getElementById('uploadFile').files[0]);
+
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/diagnostic-results/upload`, {
+          method: 'POST',
+          body: formData
+        });
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+
+        document.getElementById('uploadHint').textContent = '✓ File uploaded successfully.';
+        document.getElementById('uploadHint').style.color = 'var(--success)';
+        document.getElementById('diagnosticUploadForm').reset();
+        await loadDiagnosticResults();
+      } catch (err) {
+        document.getElementById('uploadHint').textContent = `❌ ${err.message}`;
+        document.getElementById('uploadHint').style.color = 'var(--danger)';
+      }
+    });
+
+    // ============ INITIAL LOAD ============
+
+    // Show the main consultations dashboard on load
+    switchSection('consultations', currentFilter);
+
+    loadConsultations();
+    loadMyAvailability();
+    loadNotifications();
+    loadProfile();
+    loadAllPatients();
+    loadConsultationsForUpload();
+    loadDiagnosticResults();
+  });
+  </script>
+</body>
+</html>

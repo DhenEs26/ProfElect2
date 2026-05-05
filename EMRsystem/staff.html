@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Staff Dashboard | EMR Access</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    :root {
+      --panel: #ffffff;
+      --line: #dbe4ef;
+      --text: #0f172a;
+      --muted-text: #64748b;
+      --blue: #0057b8;
+      --yellow: #facc15;
+      --yellow-soft: #fff7cc;
+      --green: #22c55e;
+      --green-soft: #dcfce7;
+      --danger-soft: #fee2e2;
+    }
+
+    body {
+      background: #eef4f9;
+      color: var(--text);
+    }
+
+    .staff-shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 36px;
+    }
+
+    .staff-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .staff-header h1 {
+      margin: 0 0 6px;
+      font-size: clamp(1.7rem, 3vw, 2.4rem);
+      color: #071426;
+    }
+
+    .staff-header p,
+    .muted {
+      color: var(--muted-text);
+      margin: 0;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 8px;
+      padding: 11px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--blue);
+      color: #fff;
+      min-height: 42px;
+    }
+
+    .btn.secondary {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    .btn.danger {
+      background: #dc2626;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .summary-card,
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    .summary-card {
+      padding: 16px;
+    }
+
+    .summary-card span {
+      display: block;
+      color: var(--muted-text);
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+    }
+
+    .summary-card strong {
+      font-size: 2rem;
+      line-height: 1;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 18px 0 12px;
+    }
+
+    .tab {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: #0f172a;
+      border-radius: 8px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .tab.active {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+
+    .panel {
+      padding: 18px;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      color: #071426;
+    }
+
+    .queue-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .queue-card {
+      border: 1px solid var(--line);
+      border-left: 8px solid var(--green);
+      border-radius: 8px;
+      padding: 14px;
+      background: var(--green-soft);
+    }
+
+    .queue-card.yellow {
+      border-left-color: var(--yellow);
+      background: var(--yellow-soft);
+    }
+
+    .queue-title {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .queue-title h3 {
+      margin: 0;
+      font-size: 1.05rem;
+      color: #071426;
+    }
+
+    .badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      background: #e2e8f0;
+      color: #0f172a;
+      white-space: nowrap;
+    }
+
+    .badge.yellow {
+      background: #fef08a;
+      color: #713f12;
+    }
+
+    .badge.green {
+      background: #bbf7d0;
+      color: #14532d;
+    }
+
+    .badge.priority {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .detail {
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      border-radius: 8px;
+      padding: 10px;
+      min-height: 70px;
+    }
+
+    .detail span {
+      display: block;
+      color: var(--muted-text);
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .detail strong {
+      display: block;
+      color: #0f172a;
+      overflow-wrap: anywhere;
+    }
+
+    .notice {
+      background: var(--danger-soft);
+      border: 1px solid #fecaca;
+      color: #7f1d1d;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .invite-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 260px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .input-like {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px 12px;
+      font: inherit;
+      background: #f8fafc;
+      color: #0f172a;
+      box-sizing: border-box;
+    }
+
+    .qr-box {
+      display: grid;
+      place-items: center;
+      min-height: 240px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    .empty-state {
+      border: 1px dashed #cbd5e1;
+      border-radius: 8px;
+      padding: 28px;
+      text-align: center;
+      color: var(--muted-text);
+      background: #f8fafc;
+    }
+
+    @media (max-width: 850px) {
+      .staff-header,
+      .panel-head,
+      .queue-title {
+        display: block;
+      }
+
+      .header-actions,
+      .badges {
+        justify-content: flex-start;
+        margin-top: 12px;
+      }
+
+      .summary-grid,
+      .detail-grid,
+      .invite-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  <script src="api-config.js"></script>
+</head>
+<body>
+  <main class="staff-shell">
+    <header class="staff-header">
+      <div>
+        <h1>Staff Dashboard</h1>
+        <p id="staffMeta">Loading staff account...</p>
+      </div>
+      <div class="header-actions">
+        <button id="refreshData" class="btn secondary" type="button">Refresh</button>
+        <button id="logout" class="btn danger" type="button">Logout</button>
+      </div>
+    </header>
+
+    <div id="statusMessage" class="notice hidden"></div>
+
+    <section class="summary-grid" aria-label="Staff dashboard summary">
+      <article class="summary-card">
+        <span>Pending Items</span>
+        <strong id="pendingCount">0</strong>
+      </article>
+      <article class="summary-card">
+        <span>Green / Finished</span>
+        <strong id="greenCount">0</strong>
+      </article>
+      <article class="summary-card">
+        <span>Senior / PWD Priority</span>
+        <strong id="priorityCount">0</strong>
+      </article>
+      <article class="summary-card">
+        <span>Doctor Schedule Updates</span>
+        <strong id="scheduleUpdateCount">0</strong>
+      </article>
+    </section>
+
+    <nav class="tabs" aria-label="Staff sections">
+      <button class="tab active" type="button" data-view="schedules">Patient Schedules</button>
+      <button class="tab" type="button" data-view="consultations">View Consultations</button>
+      <button class="tab" type="button" data-view="diagnostic">Diagnostic Results</button>
+      <button class="tab" type="button" data-view="invite">Patient Invite</button>
+    </nav>
+
+    <section id="schedulesView" class="panel" aria-label="Patient schedules">
+      <div class="panel-head">
+        <h2>Patient Schedules</h2>
+        <p class="muted">Yellow means pending or rescheduled. Green means finished.</p>
+      </div>
+      <div id="scheduleList" class="queue-list"></div>
+    </section>
+
+    <section id="consultationsView" class="panel hidden" aria-label="Consultations">
+      <div class="panel-head">
+        <h2>Consultations</h2>
+        <p class="muted">Senior citizens and PWD patients are shown first.</p>
+      </div>
+      <div id="consultationList" class="queue-list"></div>
+    </section>
+
+    <section id="diagnosticView" class="panel hidden" aria-label="Diagnostic Results">
+      <div class="panel-head">
+        <h2>Diagnostic Results</h2>
+        <p class="muted">Select a patient and consultation to view and manage diagnostic results.</p>
+      </div>
+
+      <!-- Patient Search -->
+      <div style="margin-bottom: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 8px;">
+        <h3 style="margin-top: 0;">Search Patient</h3>
+        <div style="margin-bottom: 1rem; position: relative;">
+          <label for="staffDiagPatientSearch"><strong>Type patient name or email</strong></label>
+          <input 
+            type="text" 
+            id="staffDiagPatientSearch" 
+            placeholder="Search by name or email..." 
+            autocomplete="off"
+            style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; margin-bottom: 0.5rem;" 
+          />
+          <div 
+            id="staffDiagPatientDropdown" 
+            style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ccc; border-top: none; border-radius: 0 0 4px 4px; max-height: 250px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Consultation Selection -->
+      <div id="consultationSelectionContainer" style="display: none; margin-bottom: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 8px;">
+        <h3 style="margin-top: 0;">Select Consultation</h3>
+        <div style="margin-bottom: 1rem;">
+          <label for="staffDiagConsultationSelect"><strong>Patient Consultations</strong></label>
+          <select 
+            id="staffDiagConsultationSelect" 
+            required 
+            style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;"
+          >
+            <option value="">-- Select a consultation --</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Upload Form (shown only after consultation selection) -->
+      <div id="uploadFormContainer" style="display: none; margin-bottom: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 8px;">
+        <h3 style="margin-top: 0;">Upload Diagnostic Result</h3>
+        <form id="staffDiagnosticUploadForm" class="form">
+          <div style="margin-bottom: 1rem;">
+            <label for="staffUploadFile"><strong>File</strong></label>
+            <input type="file" id="staffUploadFile" name="file" accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.txt" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;" />
+          </div>
+          <div style="margin-bottom: 1rem;">
+            <label for="staffUploadDescription"><strong>Description</strong></label>
+            <textarea id="staffUploadDescription" name="description" rows="3" placeholder="Describe the diagnostic result, test type, or document purpose..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit;"></textarea>
+          </div>
+          <button type="submit" class="btn">Upload File</button>
+          <p id="staffUploadHint" style="margin-top: 0.5rem;"></p>
+        </form>
+      </div>
+
+      <!-- Results List -->
+      <div id="resultsContainer" style="display: none;">
+        <h3>Diagnostic Results for Selected Consultation</h3>
+        <p id="staffDiagnosticDebug" style="color:#666; font-size:0.9rem; margin:0 0 0.75rem 0;">Loading diagnostic results...</p>
+        <div id="staffDiagnosticResultsList" class="queue-list"></div>
+      </div>
+    </section>
+
+    <section id="inviteView" class="panel hidden" aria-label="Patient invite">
+      <div class="panel-head">
+        <h2>Patient Registration Invite</h2>
+        <button id="generateInvite" class="btn" type="button">Generate QR</button>
+      </div>
+
+      <div id="inviteSection" class="hidden">
+        <div class="invite-grid">
+          <div>
+            <label for="inviteLink"><strong>Invite Link</strong></label>
+            <input id="inviteLink" class="input-like" type="text" readonly />
+            <br /><br />
+            <label for="expiresAt"><strong>Expires At</strong></label>
+            <input id="expiresAt" class="input-like" type="text" readonly />
+          </div>
+          <div class="qr-box">
+            <img id="qrImage" alt="Patient invite QR code" style="max-width: 220px;" />
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 14px;">
+          <button id="closeQr" class="btn secondary" type="button">Close QR</button>
+        </div>
+      </div>
+
+      <div id="inviteEmpty" class="empty-state">Generate a QR code when a patient needs a registration link.</div>
+    </section>
+  </main>
+
+  <script>
+    const API_BASE_URL = window.PROFELECT_API_BASE_URL || '';
+    const authUser = JSON.parse(localStorage.getItem('authUser') || 'null');
+
+    const staffMeta = document.getElementById('staffMeta');
+    const statusMessage = document.getElementById('statusMessage');
+    const scheduleList = document.getElementById('scheduleList');
+    const consultationList = document.getElementById('consultationList');
+    const inviteSection = document.getElementById('inviteSection');
+    const inviteEmpty = document.getElementById('inviteEmpty');
+    const inviteLinkInput = document.getElementById('inviteLink');
+    const expiresAtInput = document.getElementById('expiresAt');
+    const qrImage = document.getElementById('qrImage');
+
+    const counters = {
+      pending: document.getElementById('pendingCount'),
+      green: document.getElementById('greenCount'),
+      priority: document.getElementById('priorityCount'),
+      scheduleUpdates: document.getElementById('scheduleUpdateCount'),
+    };
+
+    function redirectToLogin() {
+      localStorage.removeItem('authUser');
+      window.location.href = 'login.html';
+    }
+
+    function setMessage(message) {
+      statusMessage.textContent = message;
+      statusMessage.classList.toggle('hidden', !message);
+    }
+
+    async function apiRequest(path, options = {}) {
+      const resp = await fetch(`${API_BASE_URL}${path}`, options);
+      const text = await resp.text();
+      let data = null;
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch {
+        data = null;
+      }
+
+      if (!resp.ok) {
+        throw new Error(data?.message || `Request failed with status ${resp.status}`);
+      }
+      return data;
+    }
+
+    function formatDate(value) {
+      if (!value) return 'Not set';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return date.toLocaleDateString();
+    }
+
+    function formatDateTime(value) {
+      if (!value) return 'Not set';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    }
+
+    function formatTimeRange(item) {
+      if (!item.consultation_time && !item.consultation_time_end) return 'Not set';
+      return `${item.consultation_time || 'Not set'}${item.consultation_time_end ? ` - ${item.consultation_time_end}` : ''}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function renderBadges(item) {
+      const color = item.display_color === 'yellow' ? 'yellow' : 'green';
+      const badges = [`<span class="badge ${color}">${escapeHtml(item.display_label || item.status || 'Active')}</span>`];
+
+      if (item.priority) {
+        badges.push(`<span class="badge priority">${escapeHtml(item.priority_reason || 'Priority')}</span>`);
+      }
+      if (item.reschedule_status) {
+        badges.push(`<span class="badge yellow">Reschedule: ${escapeHtml(item.reschedule_status)}</span>`);
+      }
+      return badges.join('');
+    }
+
+    function renderCard(item, mode) {
+      const fullName = item.patient_name || [item.first_name, item.middle_name, item.last_name].filter(Boolean).join(' ') || 'Unnamed patient';
+      const doctor = item.doctor_name || 'No doctor assigned';
+      const scheduleDate = formatDate(item.consultation_date);
+      const scheduleTime = formatTimeRange(item);
+      const updatedAt = formatDateTime(item.updated_at);
+      const rescheduleText = item.reschedule_request_id
+        ? `${formatDate(item.reschedule_new_date)} ${item.reschedule_new_time || ''}`.trim()
+        : 'None';
+
+      return `
+        <article class="queue-card ${item.display_color === 'yellow' ? 'yellow' : 'green'}">
+          <div class="queue-title">
+            <div>
+              <h3>${escapeHtml(fullName)}</h3>
+              <p class="muted">Consultation #${escapeHtml(item.id)} with ${escapeHtml(doctor)}</p>
+            </div>
+            <div class="badges">${renderBadges(item)}</div>
+          </div>
+          <div class="detail-grid">
+            <div class="detail">
+              <span>Schedule</span>
+              <strong>${escapeHtml(scheduleDate)} at ${escapeHtml(scheduleTime)}</strong>
+            </div>
+            <div class="detail">
+              <span>${mode === 'schedule' ? 'Doctor Update' : 'Status Updated'}</span>
+              <strong>${escapeHtml(updatedAt)}</strong>
+            </div>
+            <div class="detail">
+              <span>Reschedule Request</span>
+              <strong>${escapeHtml(rescheduleText)}</strong>
+            </div>
+            <div class="detail">
+              <span>Concern</span>
+              <strong>${escapeHtml(item.concerns || 'No concern provided')}</strong>
+            </div>
+            <div class="detail">
+              <span>Contact</span>
+              <strong>${escapeHtml(item.mobile || item.patient_email || 'No contact saved')}</strong>
+            </div>
+            <div class="detail">
+              <span>Notes</span>
+              <strong>${escapeHtml(item.notes || 'No notes yet')}</strong>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderList(target, rows, mode) {
+      if (!rows.length) {
+        target.innerHTML = '<div class="empty-state">No records found for this section.</div>';
+        return;
+      }
+      target.innerHTML = rows.map((item) => renderCard(item, mode)).join('');
+    }
+
+    function updateCounters(consultations) {
+      counters.pending.textContent = consultations.filter((item) => item.display_color === 'yellow').length;
+      counters.green.textContent = consultations.filter((item) => item.display_color === 'green').length;
+      counters.priority.textContent = consultations.filter((item) => item.priority).length;
+      counters.scheduleUpdates.textContent = consultations.filter((item) => item.doctor_schedule_changed).length;
+    }
+
+    async function loadDashboard() {
+      if (!authUser || authUser.role !== 'staff') {
+        redirectToLogin();
+        return;
+      }
+
+      try {
+        setMessage('');
+        const [scheduleData, consultationData] = await Promise.all([
+          apiRequest(`/api/staff/schedules?userId=${encodeURIComponent(authUser.id)}`),
+          apiRequest(`/api/staff/consultations?userId=${encodeURIComponent(authUser.id)}`),
+        ]);
+
+        const schedules = scheduleData.schedules || [];
+        const consultations = consultationData.consultations || [];
+        renderList(scheduleList, schedules, 'schedule');
+        renderList(consultationList, consultations, 'consultation');
+        updateCounters(consultations);
+        
+        // Load patient list for diagnostic upload
+        await loadPatientList();
+      } catch (err) {
+        setMessage(`Could not load staff dashboard: ${err.message}`);
+      }
+    }
+
+    function switchView(viewName) {
+      document.querySelectorAll('.tab').forEach((tab) => {
+        tab.classList.toggle('active', tab.dataset.view === viewName);
+      });
+      document.getElementById('schedulesView').classList.toggle('hidden', viewName !== 'schedules');
+      document.getElementById('consultationsView').classList.toggle('hidden', viewName !== 'consultations');
+      document.getElementById('diagnosticView').classList.toggle('hidden', viewName !== 'diagnostic');
+      document.getElementById('inviteView').classList.toggle('hidden', viewName !== 'invite');
+      if (viewName === 'diagnostic') {
+        loadDiagnosticPatients();
+      }
+    }
+
+    function closeInviteSection() {
+      inviteSection.classList.add('hidden');
+      inviteEmpty.classList.remove('hidden');
+      qrImage.src = '';
+      inviteLinkInput.value = '';
+      expiresAtInput.value = '';
+    }
+
+    async function generateInvite() {
+      try {
+        setMessage('');
+        const data = await apiRequest('/api/staff/invite', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: authUser.id }),
+        });
+
+        inviteSection.classList.remove('hidden');
+        inviteEmpty.classList.add('hidden');
+        inviteLinkInput.value = data.invite.inviteUrl;
+        expiresAtInput.value = formatDateTime(data.invite.expiresAt);
+        qrImage.src = data.invite.qrDataUrl;
+      } catch (err) {
+        setMessage(`Could not create invite: ${err.message}`);
+      }
+    }
+
+    // Load list of patients for diagnostic results
+    async function loadDiagnosticPatients() {
+      try {
+        const searchInput = document.getElementById('staffDiagPatientSearch');
+        const data = await apiRequest(`/api/staff/patients?userId=${encodeURIComponent(authUser.id)}`);
+        const patients = data.patients || [];
+        window.allDiagnosticPatients = patients;
+        if (searchInput) searchInput.value = '';
+        document.getElementById('staffDiagPatientDropdown').style.display = 'none';
+      } catch (err) {
+        console.error('Could not load diagnostic patients:', err);
+      }
+    }
+
+    // Handle patient search and display dropdown
+    async function searchDiagnosticPatients(searchTerm) {
+      const dropdown = document.getElementById('staffDiagPatientDropdown');
+      try {
+        if (!searchTerm.trim()) {
+          dropdown.style.display = 'none';
+          return;
+        }
+
+        const data = await apiRequest(`/api/staff/patients?userId=${encodeURIComponent(authUser.id)}&search=${encodeURIComponent(searchTerm)}`);
+        const patients = data.patients || [];
+        
+        if (patients.length === 0) {
+          dropdown.innerHTML = '<div style="padding: 12px; color: #999;">No patients found</div>';
+          dropdown.style.display = 'block';
+          return;
+        }
+
+        dropdown.innerHTML = patients.map(p => `
+          <div 
+            class="diagnostic-patient-option" 
+            data-patient-id="${escapeHtml(p.id)}" 
+            data-patient-name="${escapeHtml(p.name || (p.first_name + ' ' + p.last_name))}" 
+            style="padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; transition: background-color 0.2s;"
+            onmouseover="this.style.backgroundColor='#f0f0f0'"
+            onmouseout="this.style.backgroundColor='white'"
+          >
+            <strong>${escapeHtml(p.name || (p.first_name + ' ' + p.last_name))}</strong>
+            <div style="font-size: 0.85rem; color: #666;">${escapeHtml(p.email)}</div>
+          </div>
+        `).join('');
+        dropdown.style.display = 'block';
+      } catch (err) {
+        console.error('Could not search diagnostic patients:', err);
+        dropdown.innerHTML = '<div style="padding: 12px; color: #999;">Error searching patients</div>';
+        dropdown.style.display = 'block';
+      }
+    }
+
+    // Handle patient selection
+    async function onDiagnosticPatientSelected(patientId) {
+      const consultationContainer = document.getElementById('consultationSelectionContainer');
+      const uploadContainer = document.getElementById('uploadFormContainer');
+      const resultsContainer = document.getElementById('resultsContainer');
+
+      if (!patientId) {
+        // Clear selection
+        consultationContainer.style.display = 'none';
+        uploadContainer.style.display = 'none';
+        resultsContainer.style.display = 'none';
+        return;
+      }
+
+      // Show consultation selection
+      consultationContainer.style.display = 'block';
+      uploadContainer.style.display = 'none';
+      resultsContainer.style.display = 'none';
+
+      // Load consultations for this patient
+      await loadConsultationsForPatient(patientId);
+    }
+
+    // Load consultations for a specific patient
+    async function loadConsultationsForPatient(patientId) {
+      try {
+        const consultationSelect = document.getElementById('staffDiagConsultationSelect');
+        const data = await apiRequest(`/api/staff/patient/${encodeURIComponent(patientId)}/consultations?staffId=${encodeURIComponent(authUser.id)}`);
+        const consultations = data.consultations || [];
+        
+        if (consultations.length === 0) {
+          consultationSelect.innerHTML = '<option value="">-- No consultations found --</option>';
+          document.getElementById('uploadFormContainer').style.display = 'none';
+          document.getElementById('resultsContainer').style.display = 'none';
+          return;
+        }
+
+        const currentValue = consultationSelect.value;
+        consultationSelect.innerHTML = '<option value="">-- Select a consultation --</option>' + 
+          consultations.map(c => {
+            const date = formatDateTime(c.consultation_date || c.scheduled_date);
+            const label = `${date} - ${c.display_label || c.status}`;
+            return `<option value="${escapeHtml(c.id)}">${escapeHtml(label)}</option>`;
+          }).join('');
+        consultationSelect.value = currentValue;
+      } catch (err) {
+        console.error('Could not load consultations:', err);
+        document.getElementById('staffDiagConsultationSelect').innerHTML = '<option value="">-- Error loading consultations --</option>';
+      }
+    }
+
+    // Handle consultation selection
+    async function onDiagnosticConsultationSelected(consultationId) {
+      const uploadContainer = document.getElementById('uploadFormContainer');
+      const resultsContainer = document.getElementById('resultsContainer');
+
+      if (!consultationId) {
+        uploadContainer.style.display = 'none';
+        resultsContainer.style.display = 'none';
+        return;
+      }
+
+      // Show upload form and results container
+      uploadContainer.style.display = 'block';
+      resultsContainer.style.display = 'block';
+
+      // Load diagnostic results for this consultation
+      await loadDiagnosticResultsForConsultation(consultationId);
+    }
+
+    // Load diagnostic results for a specific consultation
+    async function loadDiagnosticResultsForConsultation(consultationId) {
+      try {
+        const data = await apiRequest(`/api/diagnostic-results/consultation/${encodeURIComponent(consultationId)}?userId=${encodeURIComponent(authUser.id)}`);
+        const results = data.results || [];
+        
+        const diagnosticList = document.getElementById('staffDiagnosticResultsList');
+        const debugMsg = document.getElementById('staffDiagnosticDebug');
+        
+        if (!results.length) {
+          diagnosticList.innerHTML = '<div class="empty-state">No diagnostic results for this consultation.</div>';
+          debugMsg.textContent = '';
+        } else {
+          debugMsg.textContent = `Loaded ${results.length} diagnostic result${results.length !== 1 ? 's' : ''}.`;
+          diagnosticList.innerHTML = results.map((result) => `
+            <article class="queue-card">
+              <div class="queue-title">
+                <div>
+                  <h3>${escapeHtml(result.file_name || 'Unknown File')}</h3>
+                  <p class="muted">${escapeHtml(result.file_type || 'Unknown Type')} • ${escapeHtml(result.file_size ? Math.round(result.file_size / 1024) + ' KB' : 'Unknown size')}</p>
+                </div>
+              </div>
+              <div class="detail-grid">
+                <div class="detail">
+                  <span>Uploaded</span>
+                  <strong>${escapeHtml(formatDateTime(result.created_at))}</strong>
+                </div>
+              </div>
+              <p style="margin: 10px 0 0; color: #666;"><strong>Description:</strong> ${escapeHtml(result.description || 'No description provided')}</p>
+            </article>
+          `).join('');
+        }
+      } catch (err) {
+        const debugMsg = document.getElementById('staffDiagnosticDebug');
+        debugMsg.textContent = `Could not load diagnostic results: ${err.message}`;
+      }
+    }
+
+    async function loadPatientList() {
+      try {
+        const data = await apiRequest(`/api/staff/patients?userId=${encodeURIComponent(authUser.id)}`);
+        const patients = data.patients || [];
+        const select = document.getElementById('staffUploadPatientId');
+        
+        const currentValue = select.value;
+        select.innerHTML = '<option value="">Select a patient...</option>' + 
+          patients.map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.name || (p.first_name + ' ' + p.last_name))}</option>`).join('');
+        select.value = currentValue;
+      } catch (err) {
+        console.error('Could not load patient list:', err);
+      }
+    }
+
+    document.getElementById('staffDiagnosticUploadForm')?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const patientId = document.getElementById('staffDiagPatientSelect').value;
+      const consultationId = document.getElementById('staffDiagConsultationSelect').value;
+      
+      if (!patientId || !consultationId) {
+        alert('Please select both a patient and a consultation');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('userId', authUser.id);
+      formData.append('consultationId', consultationId);
+      formData.append('patientId', patientId);
+      formData.append('description', document.getElementById('staffUploadDescription').value);
+      formData.append('file', document.getElementById('staffUploadFile').files[0]);
+
+      try {
+        const resp = await fetch(`${API_BASE_URL}/api/diagnostic-results/upload`, {
+          method: 'POST',
+          body: formData
+        });
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.message);
+
+        document.getElementById('staffUploadHint').textContent = '✓ File uploaded successfully.';
+        document.getElementById('staffUploadHint').style.color = 'var(--success)';
+        document.getElementById('staffDiagnosticUploadForm').reset();
+        await loadDiagnosticResultsForConsultation(consultationId);
+      } catch (err) {
+        document.getElementById('staffUploadHint').textContent = `❌ ${err.message}`;
+        document.getElementById('staffUploadHint').style.color = 'var(--danger)';
+      }
+    });
+
+
+    document.querySelectorAll('.tab').forEach((tab) => {
+      tab.addEventListener('click', () => switchView(tab.dataset.view));
+    });
+
+    document.getElementById('staffDiagPatientSearch')?.addEventListener('input', async (event) => {
+      const searchTerm = event.target.value.trim();
+      if (!searchTerm) {
+        document.getElementById('staffDiagPatientDropdown').style.display = 'none';
+      } else {
+        await searchDiagnosticPatients(searchTerm);
+      }
+    });
+
+    document.getElementById('staffDiagPatientSearch')?.addEventListener('focus', async (event) => {
+      const searchTerm = event.target.value.trim();
+      if (searchTerm) {
+        await searchDiagnosticPatients(searchTerm);
+      }
+    });
+
+    document.addEventListener('click', async (event) => {
+      if (event.target.closest('.diagnostic-patient-option')) {
+        const option = event.target.closest('.diagnostic-patient-option');
+        const patientId = option.dataset.patientId;
+        const patientName = option.dataset.patientName;
+        const searchInput = document.getElementById('staffDiagPatientSearch');
+        const dropdown = document.getElementById('staffDiagPatientDropdown');
+        
+        searchInput.value = patientName;
+        dropdown.style.display = 'none';
+        await onDiagnosticPatientSelected(patientId);
+      }
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest('#staffDiagPatientSearch') && !event.target.closest('#staffDiagPatientDropdown')) {
+        document.getElementById('staffDiagPatientDropdown').style.display = 'none';
+      }
+    });
+
+
+
+    document.getElementById('staffDiagConsultationSelect')?.addEventListener('change', (event) => {
+      onDiagnosticConsultationSelected(event.target.value);
+    });
+
+    document.getElementById('refreshData').addEventListener('click', loadDashboard);
+    document.getElementById('logout').addEventListener('click', redirectToLogin);
+    document.getElementById('generateInvite').addEventListener('click', generateInvite);
+    document.getElementById('closeQr').addEventListener('click', closeInviteSection);
+
+    if (!authUser || authUser.role !== 'staff') {
+      redirectToLogin();
+    } else {
+      staffMeta.textContent = `Logged in as ${authUser.email || authUser.displayName || 'staff'}`;
+      loadDashboard();
+    }
+  </script>
+</body>
+</html>

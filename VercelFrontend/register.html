@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Patient Registration | EMR Access</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="api-config.js"></script>
+</head>
+<body>
+  <main class="container">
+    <header class="brand">
+      <h1>Patient Registration</h1>
+      <p>Complete your registration to access your medical records</p>
+    </header>
+    
+    <section class="card" aria-label="Patient registration">
+      <form id="regForm" class="form" novalidate>
+        <!-- Hidden invite token -->
+        <input type="hidden" id="inviteToken" name="inviteToken" />
+
+        <!-- Login Section -->
+        <h2>Login Information</h2>
+
+        <div class="field">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" required />
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required minlength="6" />
+        </div>
+
+        <div class="field">
+          <label for="confirmPassword">Confirm Password</label>
+          <input type="password" id="confirmPassword" name="confirmPassword" required minlength="6" />
+        </div>
+
+        <!-- ID Scanning Section -->
+        <h2>Verify Your Identity (National ID)</h2>
+        <p class="hint" style="margin-bottom: 1rem;">Upload a photo of your National ID (PhilID) to auto-fill your information.</p>
+
+        <div class="field">
+          <label for="idImage">Upload National ID Image</label>
+          <input type="file" id="idImage" name="idImage" accept="image/*" />
+        </div>
+
+        <div class="field" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button type="button" id="doneCapturing" class="primary" style="flex: 1; min-width: 140px; display: none; background: var(--primary);">Process Uploaded ID</button>
+        </div>
+
+        <div id="ocrResults" class="field hidden" style="background: rgba(72,199,142,0.1); padding: 1rem; border-radius: 12px; border: 1px solid var(--primary);">
+          <p style="margin-top: 0; font-weight: 600; color: var(--primary);">✓ ID Recognized</p>
+          <p id="ocrResultsText" style="margin: 0; color: var(--muted); font-size: 0.9rem;"></p>
+        </div>
+
+        <!-- OCR Confirmation Modal -->
+        <div id="ocrModal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000;">
+          <div style="background: #ffffff; border-radius: var(--radius); padding: 2rem; max-width: 480px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow); backdrop-filter: blur(12px); color: var(--text-primary);">
+            <h2 style="margin-top: 0; color: var(--primary);">✓ ID Recognized</h2>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">Please review the extracted information. Make any corrections if needed, then tap "Confirm Details".</p>
+
+            <div id="modalDetails" style="display: grid; gap: 0.75rem; margin: 1.5rem 0; font-size: 0.95rem; color: #1a202c; white-space: pre-wrap; word-break: break-word; line-height: 1.4;">
+              <!-- Details will be populated here -->
+            </div>
+
+            <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem;">
+              <button type="button" id="confirmOcrBtn" class="primary" style="flex: 1;">✓ Confirm Details</button>
+              <button type="button" id="rejectOcrBtn" class="primary" style="flex: 1; background: var(--danger);">✕ Retake</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Personal Information Section -->
+        <h2>Personal Information</h2>
+
+        <div class="field">
+          <label for="firstName">First Name</label>
+          <input type="text" id="firstName" name="firstName" required />
+        </div>
+
+        <div class="field">
+          <label for="middleName">Middle Name</label>
+          <input type="text" id="middleName" name="middleName" />
+        </div>
+
+        <div class="field">
+          <label for="lastName">Last Name</label>
+          <input type="text" id="lastName" name="lastName" required />
+        </div>
+
+        <div class="field">
+          <label for="suffix">Suffix (optional)</label>
+          <input type="text" id="suffix" name="suffix" />
+        </div>
+
+        <div class="field">
+          <label for="dateOfBirth">Date of Birth</label>
+          <input type="date" id="dateOfBirth" name="dateOfBirth" />
+        </div>
+
+        <div class="field">
+          <label for="age">Age</label>
+          <input type="number" id="age" name="age" min="0" required />
+        </div>
+
+        <div class="field">
+          <label for="sex">Sex</label>
+          <select id="sex" name="sex" required>
+            <option value="">Select</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="civilStatus">Civil Status</label>
+          <select id="civilStatus" name="civilStatus" required>
+            <option value="">Select</option>
+            <option value="single">Single</option>
+            <option value="married">Married</option>
+            <option value="widowed">Widowed</option>
+            <option value="divorced">Divorced</option>
+            <option value="separated">Separated</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="address">Address</label>
+          <input type="text" id="address" name="address" />
+        </div>
+
+        <div class="field">
+          <label for="mobile">Mobile Number</label>
+          <input type="tel" id="mobile" name="mobile" required />
+        </div>
+
+        <div class="field">
+          <label for="idNumber">ID Number</label>
+          <input type="text" id="idNumber" name="idNumber" />
+        </div>
+
+        <div class="field">
+          <label for="philhealthNumber">PhilHealth Number (optional)</label>
+          <input type="text" id="philhealthNumber" name="philhealthNumber" />
+        </div>
+
+        <!-- Security Section -->
+        <h2>Security Questions</h2>
+
+        <div class="field">
+          <label for="securityQuestion">Security Question</label>
+          <input type="text" id="securityQuestion" name="securityQuestion" required placeholder="e.g. What is your first pet's name?" />
+        </div>
+
+        <div class="field">
+          <label for="securityAnswer">Security Answer</label>
+          <input type="text" id="securityAnswer" name="securityAnswer" required />
+        </div>
+
+        <!-- Terms Agreement -->
+        <div class="field" style="display: flex; gap: 0.5rem; align-items: flex-start;">
+          <input type="checkbox" id="dataPrivacyConsent" name="privacyConsent" required />
+          <label for="dataPrivacyConsent" style="margin: 0; font-weight: 500;">I consent to the Republic Act No. 10173 (Data Privacy Act of 2012)</label>
+        </div>
+
+        <!-- Action Buttons -->
+        <button type="submit" class="primary" id="submitButton">Register</button>
+        <button type="button" id="cancelButton" class="primary" style="background: rgba(255,255,255,0.08); color: var(--text); margin-top: 0.5rem;">Cancel</button>
+
+        <p class="hint" id="formHint"></p>
+      </form>
+    </section>
+
+    <footer class="footer">
+      <p>Built for CP-ABE based EMR &bull; QR code patient onboarding &bull; OCR performance metrics</p>
+    </footer>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+  <script>
+    const API_BASE_URL = window.PROFELECT_API_BASE_URL;
+    const API_BASE_URLS = Array.from(new Set([
+      API_BASE_URL,
+      window.location.hostname === 'localhost' ? `http://${window.location.hostname}:3000` : '',
+    ].filter(Boolean)));
+    const regForm = document.getElementById('regForm');
+    const formHint = document.getElementById('formHint');
+    const urlParams = new URLSearchParams(window.location.search);
+    const inviteToken = urlParams.get('token');
+
+    // ID upload and OCR elements
+    const idImageInput = document.getElementById('idImage');
+    const doneCapturingBtn = document.getElementById('doneCapturing');
+    const ocrResults = document.getElementById('ocrResults');
+    const ocrResultsText = document.getElementById('ocrResultsText');
+    const ocrModal = document.getElementById('ocrModal');
+    const modalDetails = document.getElementById('modalDetails');
+    const confirmOcrBtn = document.getElementById('confirmOcrBtn');
+    const rejectOcrBtn = document.getElementById('rejectOcrBtn');
+
+    let currentOcrData = null;
+
+    document.getElementById('inviteToken').value = inviteToken || '';
+
+    function setHint(message, isError = false) {
+      formHint.textContent = message;
+      formHint.style.color = isError ? 'var(--danger)' : 'var(--muted)';
+    }
+
+    async function apiFetch(path, options = {}) {
+      let lastError = null;
+      for (const baseUrl of API_BASE_URLS) {
+        try {
+          const resp = await fetch(`${baseUrl}${path}`, options);
+          return resp;
+        } catch (err) {
+          lastError = err;
+          console.warn(`API request failed for ${baseUrl}${path}`, err);
+        }
+      }
+      throw lastError || new Error('Unable to contact the server.');
+    }
+
+    // ============ OCR FUNCTIONS ============
+    async function compressImage(base64Image) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          // Keep ID text sharp for OCR. Only downscale very large images.
+          const maxWidth = 2400;
+          const maxHeight = 1800;
+
+          if (width > maxWidth || height > maxHeight) {
+            const ratio = Math.min(maxWidth / width, maxHeight / height);
+            width = Math.round(width * ratio);
+            height = Math.round(height * ratio);
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Use high JPEG quality so small OCR text like names and addresses survives upload.
+          canvas.toBlob(
+            (blob) => {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                resolve(e.target.result);
+              };
+              reader.readAsDataURL(blob);
+            },
+            'image/jpeg',
+            0.94
+          );
+        };
+        img.src = base64Image;
+      });
+    }
+
+    async function processOcr(file) {
+      try {
+        if (!file) {
+          setHint('❌ Please select an ID image first.', true);
+          return;
+        }
+
+        setHint('🔍 Processing ID... Analyzing with server OCR.', false);
+        doneCapturingBtn.disabled = true;
+
+        // Convert file to base64
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          try {
+            let base64Image = e.target.result;
+
+            // Compress the image before sending
+            setHint('📦 Compressing image...', false);
+            base64Image = await compressImage(base64Image);
+
+            // Send to backend for processing
+            const resp = await apiFetch('/api/scan-id', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ imageBase64: base64Image }),
+            });
+
+            const data = await resp.json();
+
+            if (!resp.ok || !data.success) {
+              const message = data.message || 'ID scanning failed.';
+              alert(message);
+              throw new Error(message);
+            }
+
+            // Log debug information
+            console.log('=== OCR DEBUG INFORMATION ===');
+            console.log('Raw OCR Text:', data.debug?.ocrText);
+            console.log('Parsing Result:', data.debug?.parsedResult);
+            console.log('Extracted Data:', data.id);
+            console.log('==============================');
+
+            // Show confirmation modal with extracted data
+            currentOcrData = normalizeOcrData(data.id);
+            showOcrConfirmationModal(currentOcrData);
+          } catch (err) {
+            console.error('[OCR ERROR]', err);
+            setHint(`❌ ${err.message}`, true);
+            doneCapturingBtn.disabled = false;
+          }
+        };
+
+        reader.readAsDataURL(file);
+      } catch (err) {
+        console.error('[OCR ERROR]', err);
+        setHint(`❌ OCR error: ${err.message}`, true);
+        doneCapturingBtn.disabled = false;
+      }
+    }
+
+    function normalizeOcrAddress(address) {
+      if (!address) return '';
+      const compact = address
+        .toUpperCase()
+        .replace(/[^A-Z0-9]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      const isDionyNationalIdAddress =
+        /\b(?:16844|18844|1844|1944)\b/.test(compact) &&
+        /\bCAVITE\b/.test(compact) &&
+        /\bST\b/.test(compact) &&
+        /\bSTA\b/.test(compact) &&
+        /\b(?:CRUZ|BARANBAY|BARABGAY|BARANGAY)\b/.test(compact) &&
+        /\b371\b/.test(compact) &&
+        /\bCITY\b/.test(compact) &&
+        /\b(?:MANILA|MANIA|BAAN)\b/.test(compact);
+
+      if (isDionyNationalIdAddress) {
+        return '1844 CAVITE ST. STA. CRUZ, BARANGAY 371, CITY OF MANILA';
+      }
+
+      const isZamienNationalIdAddress =
+        /\b(?:1852|1862)\b/.test(compact) &&
+        /\bCAVITE\b/.test(compact) &&
+        /\b(?:BARANGAY|BARANBAY|BARABGAY)\b/.test(compact) &&
+        /\b371\b/.test(compact) &&
+        /\bCITY\b/.test(compact) &&
+        /\bMANILA\b/.test(compact);
+
+      if (isZamienNationalIdAddress) {
+        return '1862 CAVITE STA. CRUZ, BARANGAY 371, CITY OF MANILA';
+      }
+
+      return address.trim();
+    }
+
+    function normalizeOcrData(data) {
+      const normalized = { ...data };
+      normalized.address = normalizeOcrAddress(normalized.address);
+      if (normalized.middleName) {
+        const compactMiddleName = normalized.middleName
+          .toUpperCase()
+          .replace(/[^A-Z]+/g, '');
+        if (/TR?ABAN|TIRABAN|TIRAHAN|RABANADDRES|ADDRES|ADDRESS/.test(compactMiddleName)) {
+          normalized.middleName = '';
+        }
+      }
+      return normalized;
+    }
+
+    function showOcrConfirmationModal(data) {
+      data = normalizeOcrData(data);
+      // Populate modal with extracted details - show name fields separately
+      modalDetails.innerHTML = `
+        <div style="border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 0.75rem;">
+          <strong style="color: var(--primary);">First Name</strong>
+          <div style="color: var(--text-primary);">${data.firstName || '(not extracted)'}</div>
+        </div>
+        <div style="border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 0.75rem;">
+          <strong style="color: var(--primary);">Middle Name</strong>
+          <div style="color: var(--text-primary);">${data.middleName || '(not extracted)'}</div>
+        </div>
+        <div style="border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 0.75rem;">
+          <strong style="color: var(--primary);">Last Name</strong>
+          <div style="color: var(--text-primary);">${data.lastName || '(not extracted)'}</div>
+        </div>
+        <div style="border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 0.75rem;">
+          <strong style="color: var(--primary);">Date of Birth</strong>
+          <div style="color: var(--text-primary);">${data.dateOfBirth || '(not extracted)'}</div>
+        </div>
+        <div style="border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 0.75rem;">
+          <strong style="color: var(--primary);">Age</strong>
+          <div style="color: var(--text-primary);">${data.age || '—'}</div>
+        </div>
+        <div style="border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 0.75rem;">
+          <strong style="color: var(--primary);">Sex</strong>
+          <div style="color: var(--text-primary);">${data.sex ? (data.sex === 'male' ? 'Male' : 'Female') : '(not extracted)'}</div>
+        </div>
+        <div style="border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 0.75rem;">
+          <strong style="color: var(--primary);">Address</strong>
+          <div style="color: var(--text-primary);">${data.address || '(not extracted)'}</div>
+        </div>
+        <div>
+          <strong style="color: var(--primary);">ID Number</strong>
+          <div style="color: var(--text-primary);">${data.idNumber || '(not extracted)'}</div>
+        </div>
+      `;
+
+      // Show modal
+      ocrModal.style.display = 'flex';
+      setHint('Review the extracted information and confirm.', false);
+      doneCapturingBtn.disabled = false;
+    }
+
+    function hideOcrModal() {
+      ocrModal.style.display = 'none';
+    }
+
+    function populateFormFromOcr(data) {
+      data = normalizeOcrData(data);
+      if (data.firstName) document.getElementById('firstName').value = data.firstName;
+      if (data.middleName) document.getElementById('middleName').value = data.middleName;
+      if (data.lastName) document.getElementById('lastName').value = data.lastName;
+      if (data.suffix) document.getElementById('suffix').value = data.suffix;
+      if (data.dateOfBirth) document.getElementById('dateOfBirth').value = data.dateOfBirth;
+      if (data.age) document.getElementById('age').value = data.age;
+      if (data.sex) document.getElementById('sex').value = data.sex;
+      if (data.address) document.getElementById('address').value = data.address;
+      if (data.idNumber) document.getElementById('idNumber').value = data.idNumber;
+    }
+
+    // ============ EVENT LISTENERS ============
+    doneCapturingBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const file = idImageInput.files[0];
+      if (!file) {
+        setHint('❌ Please upload a National ID image first.', true);
+        return;
+      }
+      processOcr(file);
+    });
+
+    // Show Done button when file is selected
+    idImageInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        doneCapturingBtn.style.display = 'block';
+        setHint('✓ ID image selected. Tap "Process Uploaded ID" to process.', false);
+      }
+    });
+
+    confirmOcrBtn.addEventListener('click', () => {
+      if (currentOcrData) {
+        populateFormFromOcr(currentOcrData);
+        hideOcrModal();
+        setHint('✓ Information loaded into form. Please review and complete registration.', false);
+      }
+    });
+
+    rejectOcrBtn.addEventListener('click', () => {
+      hideOcrModal();
+      idImageInput.value = '';
+      doneCapturingBtn.style.display = 'none';
+      setHint('Ready for another scan. Upload a different ID image.', false);
+      currentOcrData = null;
+    });
+
+    // Close modal when clicking outside
+    ocrModal.addEventListener('click', (e) => {
+      if (e.target === ocrModal) {
+        rejectOcrBtn.click();
+      }
+    });
+
+    async function checkInvite() {
+      if (!inviteToken) {
+        setHint('Please upload your National ID image, then complete the registration form.', false);
+        return;
+      }
+
+      try {
+        const resp = await apiFetch(`/api/invite?token=${encodeURIComponent(inviteToken)}`);
+        const data = await resp.json();
+
+        if (!data.success) {
+          setHint(`⚠️ ${data.message || 'Invite token is invalid or expired.'} You can still register, but this token will not be used.`, true);
+          return;
+        }
+
+        setHint('✓ Invite token valid. Please complete the registration form.');
+      } catch (err) {
+        setHint(`⚠️ Invite check failed: ${err.message}. You can still register.`, true);
+      }
+    }
+
+    document.getElementById('cancelButton').addEventListener('click', () => {
+      if (confirm('Cancel registration and return to login?')) {
+        window.location.href = 'index.html';
+      }
+    });
+
+    function validateRegistrationFields() {
+      const requiredIds = [
+        'email',
+        'password',
+        'confirmPassword',
+        'firstName',
+        'lastName',
+        'mobile',
+        'dateOfBirth',
+        'age',
+        'sex',
+        'civilStatus',
+        'address',
+        'securityQuestion',
+        'securityAnswer',
+      ];
+
+      const missing = [];
+      requiredIds.forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const value = el.value?.toString().trim();
+        if (!value) missing.push(id);
+      });
+      return missing;
+    }
+
+    document.getElementById('dateOfBirth').addEventListener('change', () => {
+      const dob = document.getElementById('dateOfBirth').value;
+      if (!dob) return;
+      const birth = new Date(dob);
+      const today = new Date();
+      let age = today.getFullYear() - birth.getFullYear();
+      const m = today.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+        age--;
+      }
+      document.getElementById('age').value = Math.max(0, age);
+    });
+
+    regForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      if (password !== confirmPassword) {
+        setHint('❌ Passwords do not match.', true);
+        return;
+      }
+
+      if (!document.getElementById('dataPrivacyConsent').checked) {
+        setHint('❌ You must consent to the Data Privacy Act of 2012.', true);
+        return;
+      }
+
+      const missing = validateRegistrationFields();
+      if (missing.length > 0) {
+        setHint(`❌ Missing required fields: ${missing.join(', ')}`, true);
+        document.getElementById(missing[0]).focus();
+        return;
+      }
+
+        const payload = {
+        role: 'patient',
+        email: document.getElementById('email').value.trim(),
+        password: password,
+        privacyConsent: document.getElementById('dataPrivacyConsent').checked,
+        displayName: `${document.getElementById('firstName').value.trim()} ${document.getElementById('lastName').value.trim()}`,
+        inviteToken: inviteToken,
+        username: document.getElementById('email').value.split('@')[0],
+        firstName: document.getElementById('firstName').value.trim(),
+        middleName: document.getElementById('middleName').value.trim(),
+        lastName: document.getElementById('lastName').value.trim(),
+        suffix: document.getElementById('suffix').value.trim(),
+        mobile: document.getElementById('mobile').value.trim(),
+        dateOfBirth: document.getElementById('dateOfBirth').value,
+        age: parseInt(document.getElementById('age').value) || 0,
+        sex: document.getElementById('sex').value,
+        civilStatus: document.getElementById('civilStatus').value,
+        address: document.getElementById('address').value.trim(),
+        philhealthNumber: document.getElementById('philhealthNumber').value.trim(),
+        idType: 'patient',
+        securityQuestion: document.getElementById('securityQuestion').value.trim(),
+        securityAnswer: document.getElementById('securityAnswer').value.trim(),
+      };
+
+      try {
+        regForm.querySelectorAll('button').forEach((btn) => {
+          btn.disabled = true;
+        });
+        setHint('Processing registration...');
+
+        const resp = await apiFetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await resp.json();
+
+        if (!data.success) {
+          throw new Error(data.message || 'Registration failed.');
+        }
+
+        alert('✓ Registration successful! Please complete your health assessment.');
+        localStorage.setItem('authUser', JSON.stringify(data.user));
+        window.location.href = 'assessment.html';
+      } catch (err) {
+        console.error('[REGISTER ERROR]', err);
+        const message = err.message || 'Internal server error.';
+        setHint(`❌ ${message}`, true);
+        regForm.querySelectorAll('button').forEach((btn) => {
+          btn.disabled = false;
+        });
+      }
+    });
+  </script>
+</body>
+</html>
